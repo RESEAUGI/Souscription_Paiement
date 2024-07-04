@@ -1,0 +1,31 @@
+
+type Query{
+    getAllPlans:[PlanModel]
+    getPlanById(id:ID!):PlanModel
+}
+
+type Mutation{
+    createPlan(category:String!,amount:Float!,duration:Int!):PlanModel
+}
+
+type Subscription{
+
+}
+
+type PlanModel{
+    plan_id:ID!
+
+    category:String!
+
+    amount: Float!
+
+    duration:Int!
+}
+
+type User{
+
+}
+
+type Payment{
+
+}
