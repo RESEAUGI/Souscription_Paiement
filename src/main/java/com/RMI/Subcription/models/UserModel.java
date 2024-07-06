@@ -1,7 +1,5 @@
 package com.RMI.Subcription.models;
 
-
-import java.time.LocalDate;
 import java.util.UUID;
 
 import org.springframework.data.annotation.Id;
@@ -24,9 +22,9 @@ public class UserModel {
 
    private UUID planId;
 
-   private LocalDate startDate;
+   private String startDate;
 
-   private LocalDate endDate;
+   private String endDate;
    
    private String status;
 

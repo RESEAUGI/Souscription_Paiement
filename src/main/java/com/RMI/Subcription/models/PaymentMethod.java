@@ -1,6 +1,6 @@
 package com.RMI.Subcription.models;
 
-import java.time.LocalDate;
+
 import java.util.UUID;
 
 import org.springframework.data.annotation.Id;
@@ -25,13 +25,15 @@ public class PaymentMethod {
     //card
     private String cardNumber;
 
-    private LocalDate expirationDate;
+    private String expirationDate;
 
     private String cvc; 
 
     //mobile
     private String provider;
+    
     private String phoneNumber;
+    
     //paypal
     private String paypalEmail;
 }

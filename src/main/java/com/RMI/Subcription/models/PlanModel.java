@@ -18,9 +18,9 @@ public class PlanModel {
     @Id
     private UUID planId;
 
-    private String category;
+    private String category;//Standard,basic,premium
 
-    private BigDecimal amount;
+    private BigDecimal amount;//prix
 
-    private Integer duration;
+    private Integer duration;//durée du plan 3,6,12 mois
 }

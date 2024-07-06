@@ -19,16 +19,35 @@ public class PaymentService {
     @Autowired
     private PaymentRepository paymentRepository;
 
-    private UUID payment;
+    private PaymentMethod paymentMethod = new PaymentMethod();
 
-    public PaymentMethod createPayement(PaymentMethod paymentMethod) {
-        setPayment(UUID.randomUUID());
-        paymentMethod.setPaymentMethodId(payment);
+    public PaymentMethod createPayement() {
         return paymentRepository.save(paymentMethod);
     }
 
-    public UUID returnId(){
-        return payment;
+    public void saveTemp(
+    String methodType, //card,mobile,paypal
+    //card
+    String cardNumber,
+    String expirationDate,
+    String cvc,
+    //mobile
+    String provider,
+    String phoneNumber,
+    //paypal
+    String paypalEmail,
+
+    UUID userId
+    ){
+        paymentMethod.setCardNumber(cardNumber);
+        paymentMethod.setExpirationDate(expirationDate);
+        paymentMethod.setMethodType(methodType);
+        paymentMethod.setPhoneNumber(phoneNumber);
+        paymentMethod.setPaypalEmail(paypalEmail);
+        paymentMethod.setCvc(cvc);
+        paymentMethod.setProvider(provider);
+        paymentMethod.setPaymentMethodId(UUID.randomUUID());
+        paymentMethod.setUserId(userId);
     }
 
     public List<PaymentMethod> getAllPayments() {
@@ -37,6 +56,10 @@ public class PaymentService {
 
     public PaymentMethod getByPaymentMethodId(UUID paymentMethod) {
         return paymentRepository.findByPaymentMethodId(paymentMethod);
+    }
+
+    public UUID returnId(){
+        return paymentMethod.getPaymentMethodId();
     }
 
     /* 

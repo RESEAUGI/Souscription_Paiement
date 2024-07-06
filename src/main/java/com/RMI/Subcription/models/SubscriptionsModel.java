@@ -1,6 +1,5 @@
 package com.RMI.Subcription.models;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 import org.springframework.data.annotation.Id;
@@ -21,7 +20,7 @@ public class SubscriptionsModel {
     @Id
     private UUID subscriptionId;
 
-    private LocalDate paymentDate;
+    private String paymentDate;
 
     private UUID planId;
 

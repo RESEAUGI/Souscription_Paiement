@@ -1,7 +1,5 @@
 package com.RMI.Subcription.service;
 
-
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,19 +15,37 @@ import lombok.Setter;
 @Getter
 @Setter
 @Service
-public class UserService {
+public class UserService { 
+    private UserModel model=new UserModel();
+
     @Autowired
     private UserRepository userRepository;
 
-    private UUID userId;
-    public UserModel NewDriver(UserModel model) {
-        setUserId(UUID.randomUUID());
-        model.setUserId(userId);
+    public UserModel NewDriver() {
         return userRepository.save(model);
     }
 
-    public UUID returnId(){
-        return userId;
+    public void saveTemp(
+        UUID userId,
+     
+        UUID planId,
+     
+        String startDate,
+     
+        String endDate,
+        
+        String status,
+     
+        UUID paymentMethodId
+    ){
+        model.setUserId(userId);
+        model.setStatus(status);
+        model.setPaymentMethodId(paymentMethodId);
+        model.setEndDate(endDate);
+        model.setStartDate(startDate);
+        model.setPlanId(planId);
+        model.setSubscriptionId(UUID.randomUUID());
+        
     }
 
     public UserModel getUsersByID(UUID id) {
@@ -44,7 +60,7 @@ public class UserService {
         return userRepository.findByPaymentMethodId(paymentMethodId);
     }
 
-    public List<UserModel> getUsersByDate(LocalDate paymentDate) {
+    public List<UserModel> getUsersByDate(String paymentDate) {
         return userRepository.findByStartDate(paymentDate);
     }
 

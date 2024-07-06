@@ -1,6 +1,5 @@
 package com.RMI.Subcription.service;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,9 +13,36 @@ public class SubscriptionService {
     @Autowired
     private SubscriptionRepository subscriptionRepository;
 
-    public SubscriptionsModel createSubscription(SubscriptionsModel model){
-        model.setSubscriptionId(UUID.randomUUID());
+    private SubscriptionsModel model=new SubscriptionsModel();
+
+    public SubscriptionsModel createSubscription(
+        UUID userId,
+        UUID subscriptionId,
+        String paymentDate,
+        UUID planId,
+        String status,
+        UUID paymentMethodId
+    ){
+        getAllParam(userId, subscriptionId, paymentDate, planId, status, paymentMethodId);
+        
         return subscriptionRepository.save(model);
+    }
+
+    public void getAllParam(
+        UUID userId,
+        UUID subscriptionId,
+        String paymentDate,
+        UUID planId,
+        String status,
+        UUID paymentMethodId
+    ){
+        model.setPaymentDate(paymentDate);
+        model.setPaymentMethodId(paymentMethodId);
+        model.setStatus(status);
+        model.setUserId(userId);
+        model.setSubscriptionId(subscriptionId);
+        model.setPlanId(planId);
+
     }
     
     public List<SubscriptionsModel> getSubscriptions(){
@@ -37,7 +63,7 @@ public class SubscriptionService {
         return subscriptionRepository.findByStatus(status);
     }
 
-    public List<SubscriptionsModel> getSubscriptionByPaymentDate(LocalDate paymentDate){
+    public List<SubscriptionsModel> getSubscriptionByPaymentDate(String paymentDate){
 
         return subscriptionRepository.findByPaymentDate(paymentDate);
     }

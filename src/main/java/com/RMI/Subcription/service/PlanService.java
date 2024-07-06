@@ -1,5 +1,6 @@
 package com.RMI.Subcription.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,16 +20,21 @@ public class PlanService {
     @Autowired
     private PlanRepository planRepository;
 
-    private UUID plan;
+    private PlanModel model= new PlanModel();
     
-    public PlanModel createPlan(PlanModel model) {
-        setPlan(UUID.randomUUID());
-        model.setPlanId(plan);
+    public PlanModel createPlan() {
         return planRepository.save(model);
     };
 
-    public UUID ReturnId(){
-        return plan;
+    public UUID returnId(){
+        return model.getPlanId();
+    }
+
+    public void saveTemp(String category, BigDecimal amount, Integer duration){
+        model.setPlanId(UUID.randomUUID());
+        model.setAmount(amount);
+        model.setDuration(duration);
+        model.setCategory(category);
     }
 
     public List <PlanModel> getAllPlan() {
