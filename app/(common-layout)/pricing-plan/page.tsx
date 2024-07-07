@@ -3,17 +3,33 @@
 import DropDownButton from "@/components/tests/DropDownButton";
 import Link from "next/link";
 
-import profiles from "@/datas/profiles";
 // Import Swiper styles
 import SubHeadingBtn from "@/components/SubHeadingBtn";
-import { useState } from "react";
+import { Profile } from "@/datas/types";
+import axios, { AxiosResponse } from "axios";
+import { useEffect, useState } from "react";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
 export default function MyPage() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
- const myprofiles = profiles
+  const [myprofiles, setProfiles] = useState<Profile[]>([]);
+  
+    useEffect(() => {
+      const fetchPayments = async () => {
+        try {
+          const response = await axios.get<any, AxiosResponse<any>>('http://localhost:4000/profiles');
+          setProfiles(response.data);
+          console.log(response.data);
+  
+        } catch (error) {
+          console.error('Erreur lors de la récupération des paiements :', error);
+        }
+      };
+  
+      fetchPayments();
+    }, [myprofiles]);
   const handleOpenPopup = () => {
     setIsPopupOpen(true);
   };

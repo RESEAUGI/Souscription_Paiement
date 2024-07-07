@@ -1,14 +1,52 @@
 "use client";
-import _features from "@/datas/features";
+import { PaymentMethod, PlanData, SubPlan, UserSubscription } from '@/datas/types';
+//import _features from "@/datas/features";
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 const Page = ({ params }: { params: { plan: string[] } }) => {
    ;
   const profile = parseInt(params.plan[0]);
-  const choice =(_features [profile])[params.plan[1]]
+  const [_features, setFeatures] = useState<PlanData>({
+    basic:{
+      title: '',
+      description: [],
+      prix: 0,
+      content: ""
+    } ,
+    premium:{
+      title: '',
+      description: [],
+      prix: 0,
+      content: ""
+    },
+    standart:{
+      title: '',
+      description: [],
+      prix: 0,
+      content: ""
+    }
+  });
+  
+    useEffect(() => {
+      const fetchFeatures = async () => {
+        try {
+          const response = await axios.get<any, AxiosResponse<any>>('http://localhost:4000/plans/'+profile);
+          setFeatures(response.data);
+          //console.log(response.data);
+  
+        } catch (error) {
+          console.error('Erreur lors de la récupération des paiements :', error);
+        }
+      };
+  
+      fetchFeatures();
+    }, [_features, profile]);
+  const choice =(params.plan[1]=='basic')?_features[params.plan[1]] : (params.plan[1]=='standart')?_features.standart :_features.premium;
+
+
   const months = parseInt(params.plan[2]);
 
   const myfeatures = choice.description;
@@ -18,19 +56,33 @@ const Page = ({ params }: { params: { plan: string[] } }) => {
   const tax = 4;
   const subtotal = choice.prix * months;
   const service_charge = 10;
-  const promo_discount = 20;
+  const promo_discount = 0;
   const expiryDate = new Date();
 
   expiryDate.setMonth(date.getMonth() + months);
-const router = useRouter()
+//const router = useRouter()
   const [isActive, setIsActive] = useState(0);
   const [addressValidated, validateAddress] = useState(false);
   const [credentialConfirmed, confirmCredential] = useState(false);
   const [paymentLaunched,launchPayment] = useState(false);
-  const handleGoBack = () => {
-    router.back()
-  }
-
+  // const handleGoBack = () => {
+  //   router.back()
+  // }
+  const userFetcher: AxiosInstance = axios.create({
+    baseURL: 'http://localhost:4000',
+    timeout: 5000,
+    headers: {'Content-Type': 'application/json','Accept': 'application/json'}
+  });  
+  const paymentAPI: AxiosInstance = axios.create({
+    baseURL: 'http://localhost:4000',
+    timeout: 5000,
+    headers: {'Content-Type': 'application/json','Accept': 'application/json'}
+  });
+  const subscriber: AxiosInstance = axios.create({
+    baseURL: 'http://localhost:5000/subscription',
+    timeout: 5000,
+    headers: {'Content-Type': 'application/json','Accept': 'application/json'}
+  });
   let total_payable_amount =
     subtotal *
     (1 - tax / 100) *
@@ -38,77 +90,108 @@ const router = useRouter()
     (1 - promo_discount / 100);
 total_payable_amount= parseFloat(total_payable_amount.toFixed(3))
 
+
+const subplan:SubPlan= {
+  category:params.plan[1],
+  amount:choice.prix,
+  duration:months,
+ };
+ const paymentMethod:PaymentMethod={
+  methodType:isActive==2?'paypal': isActive>2? 'mobile':'card',
+  cardNumber:null,
+  expirationDate:null,
+  cvc:null,
+  provider:null,
+  phoneNumber:null,
+  paypalEmail:null,
+ };
+ const [formData, setFormData] = useState<UserSubscription>({...subplan,...paymentMethod,
+  startDate:date,
+  endDate:expiryDate,
+  status:'active',
+
+ })
+ const [paymentAPIdata, setpaymentAPIdata] = useState({
+  product_id:profile+'//'+choice.title, //l'id du produit que le client paye *
+  amount:total_payable_amount, // prix*
+  transaction_reason:'souscription', // "reservation" ou "souscription" *
+  phone_number :formData.phoneNumber,// (* pour le paiement mobile) et null pour le paiement par carte
+  customer_name :'',// nom du client
+  customer_email:'', 
+  langague :  'eng',// langue du client(eng OU fr) en minuscule
+  description:profile+'//'+choice.title, // decription du produit à payer
+  currency:'FCFA',
+  payment_type:formData.methodType,   // "mobile" ou "card"
+ })
+ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  setFormData({ ...formData, [e.target.name]: e.target.value });
+};
+const handleInputChangep = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  setpaymentAPIdata({ ...paymentAPIdata, [e.target.name]: e.target.value });
+};
+
   function getPaymentDatas() {
-    /* 
-    type Subscription {
-  id: ID!
-  plan: Plan!
-  user: User!
-  startDate: String!
-  endDate: String!
-  status: SubscriptionStatus!
-  paymentMethod: PaymentMethod!
-}
+    
+// userFetcher.get<any, AxiosResponse<any>>('/users')
+// .then(response => {
+//   console.log(response.data);
+// })
+// .catch((error: AxiosError) => {
+//   console.error(error);
+// });
+if (!paymentAPIdata.customer_email|| !paymentAPIdata.customer_name) validateAddress(false)
+  paymentAPIdata.amount = total_payable_amount;
+paymentAPIdata.phone_number = formData.phoneNumber;
 
-type Plan {
-  id: ID!
-  name: String!
-  description: String!
-  price: Float!
-  duration: Int! # Durée en jours
-}
+formData.methodType=isActive==2?'paypal': isActive>2? 'mobile':'card';
+formData.provider = isActive==3?'mtn':isActive==4?'orange':null;
+formData.amount = choice.prix;
+setFormData(formData)
+if (false) confirmCredential(false)
+  
+console.log('paymentAPIData : '+JSON.stringify(paymentAPIdata));
+console.log('formData : '+JSON.stringify(formData));
 
-type User {
-  id: ID!
-  name: String!
-  email: String!
-  address: String!
-}
 
-enum SubscriptionStatus {
-  ACTIVE
-  CANCELLED
-  EXPIRED
-}
+ 
+ 
 
-type PaymentMethod {
-  creditCard: CREDIT_CARD!
-  payPal: PAYPAL!
-  mobile: MOBILE!
-}
-
-type MOBILE{
-    operator:String!
-    phone:String!
-}
-
-type PAYPAL{
-    email:String!
-}
-
-type CREDIT_CARD{
-    cardNumber:String!
-    cvv: Int!
-    expiryDate:String!
-}
-
-type Query {
-  subscription(id: ID!): Subscription!
-}
-    */
   }
 
   async function  proceedToPayment() : Promise<Boolean> {
-const verdict = true;
-/*  */  
-
-return verdict
+    const res = await paymentAPI.post<any, AxiosResponse<any>>('/paymentAPI', paymentAPIdata)
+    return res.data.product_id_hash?  true:false;
+    // .then(response => {
+    //   // Traiter la réponse
+    //   console.log(response.data);
+    //   return true
+    // })
+    // .catch((error: AxiosError) => {
+    //   // Gérer les erreurs
+    //   console.error(error);
+    //   return false
+    // });
+}
+async function  subscribeThen() : Promise<Boolean> {
+  const res = await subscriber.post<any, AxiosResponse<any>>('/create', formData)
+  return res.data.product_id_hash?  true:false;
+  // .then(response => {
+  //   // Traiter la réponse
+  //   console.log(response.data);
+  //   return true
+  // })
+  // .catch((error: AxiosError) => {
+  //   // Gérer les erreurs
+  //   console.error(error);
+  //   return false
+  // });
 }
 function handleFailure() {
   
 alert("sectionfail")  }
 
   function handleSuccess() {
+    
       const customMsg = "payment succeeded"   
       alert(customMsg)
 
@@ -150,7 +233,7 @@ alert("sectionfail")  }
                   {}
                 </div>
                 <div>
-      <button onClick={handleGoBack}>Retour</button>
+      {/* <button onClick={handleGoBack}>Retour</button> */}
     </div>
               </div>
 
@@ -176,13 +259,18 @@ alert("sectionfail")  }
                       type="text"
                       className="w-full bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
                       placeholder="Enter Name"
+                      name="customer_name"
+                      value={paymentAPIdata.customer_name}
+            onChange={handleInputChangep}
                     />
                   </div>
                   <div className="col-span-12 md:col-span-6">
                     <input
                       type="email"
                       className="w-full bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
-                      placeholder="Enter Email"
+                      placeholder="Enter Email" name="customer_email"
+                      value={paymentAPIdata.customer_email}
+            onChange={handleInputChangep}
                     />
                   </div>
                   <div className="col-span-12 md:col-span-6">
@@ -214,25 +302,25 @@ alert("sectionfail")  }
                   </div>
                  
                 </div>
-                <Link 
-                href="" legacyBehavior
-              >
+                
                 <a 
                 className={`link inline-flex items-center gap-2 py-3 px-6 rounded-lg  text-white :bg-primary-400 hover:text-white font-medium w-full justify-center ${addressValidated? 'bg-neutral-700':"bg-primary"}`}
 
                 onClick={() => {
                         validateAddress(!addressValidated);
+                        toast.success('successfully validated address');
+
                       }} >
                         <span className="inline-block">  {addressValidated? "address validated": 'validate Address'} </span>
                       </a>
                 
-              </Link>
+              
               </div>
             </div>
           </div>
 
           <div className="col-span-12 lg:col-span-6">
-            <div className="bg-white rounded-2xl p-3 sm:p-4 lg:p-6 mb-6">
+            {/* <div className="bg-white rounded-2xl p-3 sm:p-4 lg:p-6 mb-6">
               <h4 className="mb-6 text-2xl font-semibold">
                 {" "}
                 Enter Promo Code{" "}
@@ -255,7 +343,7 @@ alert("sectionfail")  }
               <span className="block text-[var(--neutral-700)]">
                 {promo_discount} % Off Discount
               </span>
-            </div>
+            </div> */}
 
             <div className="bg-white rounded-2xl p-3 sm:p-4 lg:p-6 mb-5">
               <h4 className="mb-6 text-2xl font-semibold"> Payment methods </h4>
@@ -378,7 +466,7 @@ alert("sectionfail")  }
               </ul>
               <div className="border border-dashed my-6"></div>
               
-                {isActive <= 2 ? (
+                {isActive < 2 ? (
                   <>
                   <div className="grid grid-cols-12 gap-4 lg:gap-6">
                     <div className="col-span-12">
@@ -392,7 +480,9 @@ alert("sectionfail")  }
                         type="text"
                         className="w-full bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
                         placeholder="2456 1665 5155 5151"
-                        id="card-number"
+                        id="card-number" name="cardNumber"
+                        value={formData.cardNumber}
+            onChange={handleInputChange}
                       />
                     </div>
                     <div className="col-span-12 md:col-span-6">
@@ -407,6 +497,9 @@ alert("sectionfail")  }
                         className="w-full bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
                         placeholder="DD/MM/YY"
                         id="expiry-date"
+                         name = "expirationDate"
+                        value={formData.expirationDate}
+            onChange={handleInputChange}
                       />
                     </div>
                     <div className="col-span-12 md:col-span-6">
@@ -420,7 +513,10 @@ alert("sectionfail")  }
                         type="text"
                         className="w-full bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
                         placeholder="3 digits"
-                        id="cvc"
+                        id="cvc" 
+                        name="cvc"
+                        value={formData.cvc}
+            onChange={handleInputChange}
                       />
                     </div>
                     <div className="col-span-12">
@@ -434,18 +530,36 @@ alert("sectionfail")  }
                         type="text"
                         className="w-full bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
                         placeholder="Jab Archur"
-                        id="card-name"
+                        id="card-name" 
                       />
                     </div>
                     </div>
 
                   </>
-                ) : (
+                ) :isActive == 2 ? (
+                  <div className="col-span-12 md:col-span-12">
+                      <label
+                        htmlFor="paypal-email"
+                        className="text-xl font-medium block mb-3"
+                      >
+                        Paypal email
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
+                        placeholder="enter paypal email"
+                        id="paypal-email" name="paypalEmail"
+                        value={formData.paypalEmail}
+            onChange={handleInputChange}
+                      />
+                    </div>
+                )
+                : (
                   <div className="grid grid-cols-12 gap-4 lg:gap-6 " >
                     
                     <div className="col-span-12 md:col-span-6">
                       <label
-                        htmlFor="expiry-date"
+                        htmlFor="first-name"
                         className="text-xl font-medium block mb-3"
                       >
                         FIRST NAME
@@ -459,7 +573,7 @@ alert("sectionfail")  }
                     </div>
                     <div className="col-span-12 md:col-span-6">
                       <label
-                        htmlFor="cvc"
+                        htmlFor="last-name"
                         className="text-xl font-medium block mb-3"
                       >
                         LAST NAME
@@ -471,7 +585,12 @@ alert("sectionfail")  }
                         id="cvc"
                       />
                     </div>
-                    
+                    <label
+                    htmlFor="number"
+                    className="text-xl font-medium block mb-2"
+                  >
+                    NUMBER
+                  </label>
                     <div className="col-span-12 flex gap-3 h-70 bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
 
                     >
@@ -484,26 +603,29 @@ alert("sectionfail")  }
                       <input
                       type="text"
                       placeholder="+237 699 71 87 51"
+                      name="phoneNumber"
+                      value={formData.phoneNumber}
+            onChange={handleInputChange}
                     />
                     </div>
-
-                    
                     
                   </div>
                 )}
-                <Link 
-                href="" legacyBehavior
-              >
+                
                 <a 
-                className={`link inline-flex items-center gap-2 py-3 px-6 rounded-lg  text-white :bg-primary-400 hover:text-white font-medium w-full justify-center ${credentialConfirmed? 'bg-neutral-700':"bg-primary"}`}
+                className={`link inline-flex items-center gap-2 mt-2 py-3 px-6 rounded-lg  text-white :bg-primary-400 hover:text-white font-medium w-full justify-center ${credentialConfirmed? 'bg-neutral-700':"bg-primary"}`}
 
                 onClick={() => {
+
                         confirmCredential(!credentialConfirmed);
+                        toast.success('credentials registered');
+                        
+
                       }} >
-                        <span className="inline-block">  {credentialConfirmed? "Credentials confirled": 'confirm credentials'} </span>
+                        <span className="inline-block">  {credentialConfirmed? "Credentials confirmed": 'confirm credentials'} </span>
                       </a>
                 
-              </Link>
+              
             </div>
 
             <div className="bg-white rounded-2xl p-3 mb-6 sm:p-4 lg:p-6 border">
@@ -548,30 +670,34 @@ alert("sectionfail")  }
                 <p className="mb-0">Payable Now</p>
                 <p className="mb-0 font-medium">{total_payable_amount} FCFA</p>
               </div>
-              <Link 
-                href="" legacyBehavior
-              >
+              
                 <a 
                 className={`link inline-flex items-center gap-2 py-3 px-6 rounded-lg  text-white :bg-primary-400 hover:text-white font-medium w-full justify-center ${paymentLaunched? 'bg-neutral-700':"bg-primary"}`}
                       
                 onClick={async () => {
                   if(addressValidated && credentialConfirmed){
                     const infos = getPaymentDatas()
-                    const result = await proceedToPayment()
+                    const result = await proceedToPayment() && await subscribeThen()
+
                     result? handleSuccess() : handleFailure()
                   }
                   if(!credentialConfirmed){
                     alert("you must confirm your credentials !")
+                    toast.error('you must confirm your credentials !');
+
                   }else{
                     if(!addressValidated){
                       alert("you must validate your address!")
+                      toast.error('you must validate your address!');
+
                     }
                   }
                       }} >
                         <span className="inline-block">  {paymentLaunched? "payment on process ... waiting for response": 'launch payment'} </span>
                       </a>
                 
-              </Link>
+              
+              
             </div>
 
             

@@ -3,11 +3,12 @@
 // Import Swiper styles
 import PaySwitch from "@/components/PaySwitch";
 import SubHeadingBtn from "@/components/SubHeadingBtn";
-import _features from "@/datas/features";
-import profiles from "@/datas/profiles";
+import { PlanData, Profile } from "@/datas/types";
+//import profiles from "@/datas/profiles";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
+import axios, { AxiosResponse } from "axios";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -15,10 +16,70 @@ import "swiper/css/pagination";
 const Page = ({params}: {params : {profile: number} }) => {
   const [activeButton, setActiveButton] = useState(0);
   //const profile = 1;
-  console.log(params.profile);
+  const [profiles, setProfiles] = useState<Profile[]>([{
+    id: 0,
+    description: '',
+    url : ''
+
+}]);
   
-  const features = _features[params.profile]
-  console.log(_features[params.profile])
+    useEffect(() => {
+      const fetchPayments = async () => {
+        try {
+          const response = await axios.get<any, AxiosResponse<any>>('http://localhost:4000/profiles');
+          setProfiles(response.data);
+          //console.log('all profiles : ');
+
+          //console.log(response.data);
+  
+        } catch (error) {
+          console.error('Erreur lors de la récupération des paiements :', error);
+        }
+      };
+  
+      fetchPayments();
+    }, [profiles]);
+  console.log('params.profile : '+params.profile);
+  
+  //const features = _features[params.profile]
+  //console.log(_features[params.profile])
+  const [features, setFeatures] = useState<PlanData>({
+    basic:{
+      title: '',
+      description: [],
+      prix: 0,
+      content: ""
+    } ,
+    premium:{
+      title: '',
+      description: [],
+      prix: 0,
+      content: ""
+    },
+    standart:{
+      title: '',
+      description: [],
+      prix: 0,
+      content: ""
+    }
+  });
+  
+    useEffect(() => {
+      const fetchFeatures = async () => {
+        try {
+          const response = await axios.get<any, AxiosResponse<any>>('http://localhost:4000/plans/'+params.profile);
+          setFeatures(response.data);
+          //console.log(response.data);
+  
+        } catch (error) {
+          console.error('Erreur lors de la récupération des paiements :', error);
+        }
+      };
+  
+      fetchFeatures();
+    }, [features, params.profile]);
+
+
 const basic = features["basic"]
 const standart = features["standart"]
 const premium = features["premium"]
@@ -33,8 +94,12 @@ const premium = features["premium"]
       setActiveButton(index);
     }
   };
+//console.log('all profiles :'+JSON.stringify(profiles));
+//console.log('profile 0 :'+JSON.stringify(profiles[0].url));
 
-const terms = profiles[params.profile].url.replaceAll('-',' ')
+//console.log('all features: '+JSON.stringify(features));
+
+const terms =profiles[params.profile-1]? profiles[params.profile-1].url.replaceAll('-',' '):'waiting...';
   return (
     <main>
       <div className="py-[5px] lg:py-[20px] bg-[var(--bg-2)] overflow-hidden px-3">
