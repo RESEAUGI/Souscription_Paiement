@@ -1,9 +1,10 @@
 "use client";
 import _features from "@/datas/features";
+import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 
 const Page = ({ params }: { params: { plan: string[] } }) => {
    ;
@@ -27,15 +28,116 @@ const router = useRouter()
   const [addressValidated, validateAddress] = useState(false);
   const [credentialConfirmed, confirmCredential] = useState(false);
   const [paymentLaunched,launchPayment] = useState(false);
+
+  //Backend
+const [methodType,setmethodType]=useState("")
+const [cardNumber,setCardNumber]=useState("")
+const [expirationDate,setExpirationDate]=useState("")
+const [cvc,setCvc]=useState("")
+const [provider,setProvider]=useState("")
+const [phoneNumber,setPhoneNumber]=useState("")
+const [paypalEmail,setPaypalEmail]=useState("")
+const [amount,setAmount]=useState(0)
+const [duration,setDuration]=useState(0)
+const [category,setCategory]=useState("")
+const [paymentDate,setPayementDate]=useState("")
+const [status,setStatus]=useState("")
+const [endDate,setEndDate]=useState("")
+const [startDate,setStartDate]=useState("")
+
+const data={
+  userId: "ec9e4f82-f7d9-4624-aed6-34ad54e795c9",
+  startDate: startDate,
+  endDate :endDate,
+  status: status,
+  paymentDate:paymentDate,
+  category:category,
+  amount:amount,
+  duration:duration,
+  methodType:methodType,
+  cardNumber:cardNumber,
+  expirationDate:expirationDate,
+  cvc:cvc,
+  provider:provider,
+  phoneNumber:phoneNumber,
+  paypalEmail:paypalEmail
+}
+const handleData=()=>{
+  const jour=new Date().getDate();
+  const mois=new Date().getMonth()+1;
+  const moisExpire=mois+months
+  const annee=new Date().getFullYear();
+  confirmCredential(!credentialConfirmed);
+  setAmount(total_payable_amount)
+  setDuration(months)
+  setCategory(choice.title.toUpperCase())
+  setStatus("Active")
+  setPayementDate(jour+"/"+mois+"/"+annee)
+  setStartDate(jour+"/"+mois+"/"+annee)
+  setEndDate(jour+"/"+moisExpire+"/"+annee)
+  if (methodType==="card") {
+    setProvider("")
+    setPhoneNumber("")
+    setPaypalEmail("")
+  } else {
+    if (methodType==="mobile" ) {
+      setCardNumber("")
+      setCvc("")
+      setExpirationDate("")
+      setPaypalEmail("")
+    } else {
+      setCardNumber("")
+      setCvc("")
+      setExpirationDate("")
+      setPhoneNumber("")
+      setProvider("")
+    }
+    
+  }
+}
+const validate=async()=>{
+  launchPayment(true)
+  await axios.post("http://localhost:5000/subscription/create",data,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    }
+  ).then((response)=>{
+    console.log(response.status);
+    
+  })
+  .catch((error)=>{
+    console.log(error);
+    
+  })
+}
+const handleCardNumber =(e:ChangeEvent<HTMLInputElement>)=>{
+  setCardNumber(e.target.value)
+}
+const handleExpireDate=(e:ChangeEvent<HTMLInputElement>)=>{
+  setExpirationDate(e.target.value)
+}
+const handleCvc=(e:ChangeEvent<HTMLInputElement>)=>{
+  setCvc(e.target.value)
+}
+const handlePhone=(e:ChangeEvent<HTMLInputElement>)=>{
+  setPhoneNumber(e.target.value)
+}
+const handleEmail=(e:ChangeEvent<HTMLInputElement>)=>{
+  setPaypalEmail(e.target.value)
+}
+//Backend
   const handleGoBack = () => {
     router.back()
   }
 
-  let total_payable_amount =
-    subtotal *
-    (1 - tax / 100) *
-    (1 + service_charge / 100) *
-    (1 - promo_discount / 100);
+  let total_payable_amount =subtotal
+  
+    // subtotal *
+    // (1 - tax / 100) *
+    // (1 + service_charge / 100) *
+    // (1 - promo_discount / 100);
 total_payable_amount= parseFloat(total_payable_amount.toFixed(3))
 
   function getPaymentDatas() {
@@ -101,6 +203,7 @@ type Query {
   async function  proceedToPayment() : Promise<Boolean> {
 const verdict = true;
 /*  */  
+
 
 return verdict
 }
@@ -266,6 +369,7 @@ alert("sectionfail")  }
                       className={`flex items-center gap-2 h-14 p-4 rounded-lg hover:bg-blue-700 hover:text-white border-2 border-gray-500 hover:border-blue-700 p-4 ${isActive == 0 ? "bg-blue-700 text-white": '' } `}
                       onClick={() => {
                         setIsActive(0);
+                        setmethodType("card")
                       }}
                     >
                       <Image
@@ -289,6 +393,7 @@ alert("sectionfail")  }
                       className={`flex items-center gap-2 h-14 p-4 rounded-lg hover:bg-blue-700 hover:text-white border-2 border-gray-500 hover:border-blue-700 p-4 ${isActive == 1 ? "bg-blue-700 text-white": '' } `}
                       onClick={() => {
                         setIsActive(1);
+                        setmethodType("card")
                       }}
                     >
                       <Image
@@ -312,6 +417,7 @@ alert("sectionfail")  }
                       className={`flex items-center gap-2 h-14 p-4 rounded-lg hover:bg-blue-700 hover:text-white border-2 border-gray-500 hover:border-blue-700 p-4 ${isActive == 2 ? "bg-blue-700 text-white": '' } `}
                       onClick={() => {
                         setIsActive(2);
+                        setmethodType("paypal")
                       }}
                     >
                       <Image
@@ -335,6 +441,8 @@ alert("sectionfail")  }
                       className={`flex items-center gap-2 h-14 p-4 rounded-lg hover:bg-blue-700 hover:text-white border-2 border-gray-500 hover:border-blue-700 p-4 ${isActive == 3 ? "bg-blue-700 text-white": '' } `}
                       onClick={() => {
                         setIsActive(3);
+                        setmethodType("mobile")
+                        setProvider("MTN Mobile Money");
                       }}
                     >
                       <Image
@@ -357,6 +465,8 @@ alert("sectionfail")  }
                     <button
                       className={`flex items-center gap-2 h-14 p-4 rounded-lg hover:bg-blue-700 hover:text-white border-2 border-gray-500 hover:border-blue-700 p-4 ${isActive == 4 ? "bg-blue-700 text-white": '' } `}
                       onClick={() => {
+                        setmethodType("mobile")
+                        setProvider("Orange Money")
                         setIsActive(4);
                       }}
                     >
@@ -378,7 +488,7 @@ alert("sectionfail")  }
               </ul>
               <div className="border border-dashed my-6"></div>
               
-                {isActive <= 2 ? (
+                {isActive < 2 && (
                   <>
                   <div className="grid grid-cols-12 gap-4 lg:gap-6">
                     <div className="col-span-12">
@@ -393,6 +503,8 @@ alert("sectionfail")  }
                         className="w-full bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
                         placeholder="2456 1665 5155 5151"
                         id="card-number"
+                        value={cardNumber}
+                        onChange={handleCardNumber}
                       />
                     </div>
                     <div className="col-span-12 md:col-span-6">
@@ -407,6 +519,8 @@ alert("sectionfail")  }
                         className="w-full bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
                         placeholder="DD/MM/YY"
                         id="expiry-date"
+                        value={expirationDate}
+                        onChange={handleExpireDate}
                       />
                     </div>
                     <div className="col-span-12 md:col-span-6">
@@ -417,10 +531,12 @@ alert("sectionfail")  }
                         CVC / CVV
                       </label>
                       <input
-                        type="text"
+                        type="number"
                         className="w-full bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
                         placeholder="3 digits"
                         id="cvc"
+                        value={cvc}
+                        onChange={handleCvc}
                       />
                     </div>
                     <div className="col-span-12">
@@ -440,7 +556,8 @@ alert("sectionfail")  }
                     </div>
 
                   </>
-                ) : (
+                )}
+                {isActive > 2 && (
                   <div className="grid grid-cols-12 gap-4 lg:gap-6 " >
                     
                     <div className="col-span-12 md:col-span-6">
@@ -455,6 +572,7 @@ alert("sectionfail")  }
                         className="w-full bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
                         placeholder="UBALDI"
                         id="expiry-date"
+                        
                       />
                     </div>
                     <div className="col-span-12 md:col-span-6">
@@ -484,12 +602,37 @@ alert("sectionfail")  }
                       <input
                       type="text"
                       placeholder="+237 699 71 87 51"
+                      value={phoneNumber}
+                      onChange={handlePhone}
                     />
                     </div>
 
                     
                     
                   </div>
+                )}
+                {isActive == 2 &&(
+                  <>
+                  <div className="grid grid-cols-12 gap-4 lg:gap-6">
+                    <div className="col-span-12">
+                      <label
+                        htmlFor="card-number"
+                        className="text-xl font-medium block mb-3"
+                      >
+                        Paypal Email
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
+                        placeholder="abc@example.com"
+                        id="paypalEmail"
+                        value={paypalEmail}
+                        onChange={handleEmail}
+                      />
+                    </div>
+                    </div>
+
+                  </>
                 )}
                 <Link 
                 href="" legacyBehavior
@@ -498,9 +641,10 @@ alert("sectionfail")  }
                 className={`link inline-flex items-center gap-2 py-3 px-6 rounded-lg  text-white :bg-primary-400 hover:text-white font-medium w-full justify-center ${credentialConfirmed? 'bg-neutral-700':"bg-primary"}`}
 
                 onClick={() => {
-                        confirmCredential(!credentialConfirmed);
+                      handleData()
+                        
                       }} >
-                        <span className="inline-block">  {credentialConfirmed? "Credentials confirled": 'confirm credentials'} </span>
+                        <span className="inline-block">  {credentialConfirmed? "Credentials confirmed": 'confirm credentials'} </span>
                       </a>
                 
               </Link>
@@ -567,6 +711,8 @@ alert("sectionfail")  }
                       alert("you must validate your address!")
                     }
                   }
+                  validate()
+                      
                       }} >
                         <span className="inline-block">  {paymentLaunched? "payment on process ... waiting for response": 'launch payment'} </span>
                       </a>

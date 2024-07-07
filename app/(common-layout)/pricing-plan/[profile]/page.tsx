@@ -6,11 +6,13 @@ import SubHeadingBtn from "@/components/SubHeadingBtn";
 import _features from "@/datas/features";
 import profiles from "@/datas/profiles";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
+import { log, profile } from "console";
 import Link from "next/link";
 import { useState } from "react";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+
 
 const Page = ({params}: {params : {profile: number} }) => {
   const [activeButton, setActiveButton] = useState(0);
@@ -22,9 +24,12 @@ const Page = ({params}: {params : {profile: number} }) => {
 const basic = features["basic"]
 const standart = features["standart"]
 const premium = features["premium"]
+
   const handleButtonClick = (index: number) => {
     setActiveButton(index);
+    
   };
+
 
   const handleButtonActiveChange = (index: number) => {
     if (index === activeButton) {
@@ -34,7 +39,8 @@ const premium = features["premium"]
     }
   };
 
-const terms = profiles[params.profile].url.replaceAll('-',' ')
+const terms = profiles[(params.profile)-1].url.replaceAll('-',' ')
+
   return (
     <main>
       <div className="py-[5px] lg:py-[20px] bg-[var(--bg-2)] overflow-hidden px-3">
@@ -164,7 +170,7 @@ const terms = profiles[params.profile].url.replaceAll('-',' ')
                     
                   </ul>
                   <Link href={"/payment-method/" + params.profile + "/standart/" + activeButton} className="btn-outline  bg-white hover:bg-white hover:text-xl hover:text-primary text-primary w-full rounded-lg justify-center">
-                    Choose Plan
+                  Choose Plan
                   </Link>
                 </div>
               </div>
@@ -203,7 +209,7 @@ const terms = profiles[params.profile].url.replaceAll('-',' ')
                     
                   </ul>
                   <Link href={"/payment-method/" + params.profile + "/premium/" + activeButton} className="btn-outline bg-primary hover:text-xl  font-semibold text-white w-full rounded-lg justify-center  bottom-10">
-                    Choose Plan
+                  Choose Plan
                   </Link>
                 </div>
               </div>
