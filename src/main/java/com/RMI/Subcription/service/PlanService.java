@@ -22,19 +22,16 @@ public class PlanService {
 
     private PlanModel model= new PlanModel();
     
-    public PlanModel createPlan() {
+    public PlanModel createPlan(String category, BigDecimal amount, Integer duration) {
+        model.setPlanId(UUID.randomUUID());
+        model.setAmount(amount);
+        model.setDuration(duration);
+        model.setCategory(category);
         return planRepository.save(model);
     };
 
     public UUID returnId(){
         return model.getPlanId();
-    }
-
-    public void saveTemp(String category, BigDecimal amount, Integer duration){
-        model.setPlanId(UUID.randomUUID());
-        model.setAmount(amount);
-        model.setDuration(duration);
-        model.setCategory(category);
     }
 
     public List <PlanModel> getAllPlan() {

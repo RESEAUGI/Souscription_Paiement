@@ -21,11 +21,7 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public UserModel NewDriver() {
-        return userRepository.save(model);
-    }
-
-    public void saveTemp(
+    public UserModel NewDriver(
         UUID userId,
      
         UUID planId,
@@ -37,7 +33,7 @@ public class UserService {
         String status,
      
         UUID paymentMethodId
-    ){
+    ) {
         model.setUserId(userId);
         model.setStatus(status);
         model.setPaymentMethodId(paymentMethodId);
@@ -45,7 +41,12 @@ public class UserService {
         model.setStartDate(startDate);
         model.setPlanId(planId);
         model.setSubscriptionId(UUID.randomUUID());
-        
+        return userRepository.save(model);
+    }
+
+
+    public UUID returnId(){
+        return model.getSubscriptionId();
     }
 
     public UserModel getUsersByID(UUID id) {

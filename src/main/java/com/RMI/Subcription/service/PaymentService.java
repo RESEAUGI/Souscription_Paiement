@@ -21,24 +21,20 @@ public class PaymentService {
 
     private PaymentMethod paymentMethod = new PaymentMethod();
 
-    public PaymentMethod createPayement() {
-        return paymentRepository.save(paymentMethod);
-    }
-
-    public void saveTemp(
-    String methodType, //card,mobile,paypal
-    //card
-    String cardNumber,
-    String expirationDate,
-    String cvc,
-    //mobile
-    String provider,
-    String phoneNumber,
-    //paypal
-    String paypalEmail,
-
-    UUID userId
-    ){
+    public PaymentMethod createPayement(
+        String methodType, //card,mobile,paypal
+        //card
+        String cardNumber,
+        String expirationDate,
+        String cvc,
+        //mobile
+        String provider,
+        String phoneNumber,
+        //paypal
+        String paypalEmail,
+    
+        UUID userId
+    ) {
         paymentMethod.setCardNumber(cardNumber);
         paymentMethod.setExpirationDate(expirationDate);
         paymentMethod.setMethodType(methodType);
@@ -48,7 +44,11 @@ public class PaymentService {
         paymentMethod.setProvider(provider);
         paymentMethod.setPaymentMethodId(UUID.randomUUID());
         paymentMethod.setUserId(userId);
+        return paymentRepository.save(paymentMethod);
     }
+
+
+    
 
     public List<PaymentMethod> getAllPayments() {
         return paymentRepository.findAll();

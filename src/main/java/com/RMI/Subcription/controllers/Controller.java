@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.RMI.Subcription.models.PaymentMethod;
 import com.RMI.Subcription.models.PlanModel;
 import com.RMI.Subcription.models.SubscriptionsModel;
+import com.RMI.Subcription.models.Supermodel;
 import com.RMI.Subcription.models.UserModel;
 import com.RMI.Subcription.service.PaymentService;
 import com.RMI.Subcription.service.PlanService;
@@ -49,22 +50,27 @@ public class Controller {
     @Autowired
     public SubscriptionService subscriptionService;
 
-    //##############Plans ##########################
-        @PostMapping("plans/create")
-        public Map<String,UUID> createPlan(@RequestBody PlanModel planModel, @RequestParam boolean actived) {
-            map.clear();
-            if (actived==false) {
-                planService.saveTemp(planModel.getCategory(), planModel.getAmount(), planModel.getDuration());
-                map.put("Temporaly saved",null);
-                return map;
-            } else {
-                planService.createPlan();
-                map.remove("Temporaly saved");
-                map.put("saved in database",planService.createPlan().getPlanId());
-                return map;
-            }
-        }
+@PostMapping("subscription/create")
+    public Map<String,UUID> createDriver(@RequestBody Supermodel model) {
+        map.clear();    
+        //plan
+        planService.createPlan(model.getCategory(), model.getAmount(), model.getDuration());
 
+        //mode de paiement
+        paymentService.createPayement(model.getMethodType(),model.getCardNumber(), model.getExpirationDate(), model.getCvc(), model.getProvider(), model.getPhoneNumber(), model.getPaypalEmail(),model.getUserId()); 
+        
+        //Souscription
+        userService.NewDriver(model.getUserId(), planService.returnId(), model.getStartDate(), model.getEndDate(), model.getStatus(), paymentService.returnId());
+        
+        //Historique
+        subscriptionService.createSubscription(model.getUserId(), userService.returnId(),
+        model.getPaymentDate(), planService.returnId(), model.getStatus(),paymentService.returnId());
+        map.put("Saved in database", userService.returnId());
+        return map;
+        
+    }
+    
+    //##############Plans ##########################
         @GetMapping("plans")
         public List <PlanModel> getAllPlans() {
             return planService.getAllPlan();
@@ -81,22 +87,6 @@ public class Controller {
         }
     
     //###############PaymentMethod##############################################
-        @PostMapping("payment/create")
-        public Map<String,UUID> createPayment(@RequestBody PaymentMethod paymentMethod, @RequestParam boolean actived) throws Exception{
-            map.clear();
-            if (actived==false) {
-                paymentService.saveTemp(paymentMethod.getMethodType(),paymentMethod.getCardNumber(), paymentMethod.getExpirationDate(), paymentMethod.getCvc(), paymentMethod.getProvider(), paymentMethod.getPhoneNumber(), paymentMethod.getPaypalEmail(),paymentMethod.getUserId());
-                map.put("Temporaly saved",null);
-                return map;
-            } else {
-                map.remove("Temporaly saved");
-                paymentService.createPayement();
-                map.put("saved in database",paymentService.createPayement().getPaymentMethodId());
-                return map;    
-            }
-            
-        }
-
         @GetMapping("payment")
         public List <PaymentMethod> getAll() {
             return paymentService.getAllPayments();
@@ -112,22 +102,6 @@ public class Controller {
             return paymentService.getByMethodType(method);
         }
     //###############Subscription################################################
-        @PostMapping("subscription/create")
-        public Map<String,UUID> createDriver(@RequestBody UserModel userModel, @RequestParam boolean actived) {
-            map.clear();
-
-            if (actived==false) {
-                
-                userService.saveTemp(userModel.getUserId(), planService.returnId(), userModel.getStartDate(), userModel.getEndDate(), userModel.getStatus(), paymentService.returnId());
-                map.put("Temporaly saved", null);
-                return map;
-            } else {
-                map.remove("Temporaly saved");
-                userService.NewDriver();
-                map.put("Saved in database", userService.NewDriver().getPaymentMethodId());
-                return map;
-            }
-        }
 
         @GetMapping("subscription/id")
         public UserModel getByID (@RequestParam UUID id) {
@@ -165,12 +139,6 @@ public class Controller {
         }
 
     //###############History######################################################
-    @PostMapping("history/create")
-    public SubscriptionsModel createSubscriptions(@RequestBody SubscriptionsModel subscriptionsModel){
-        return subscriptionService.createSubscription(subscriptionsModel.getUserId(), subscriptionsModel.getSubscriptionId(),
-         subscriptionsModel.getPaymentDate(), subscriptionsModel.getPlanId(), subscriptionsModel.getStatus(),subscriptionsModel.getPaymentMethodId());
-    }
-
     @GetMapping("history/")
     public List<SubscriptionsModel> getSubscriptions() {
         return subscriptionService.getSubscriptions();
