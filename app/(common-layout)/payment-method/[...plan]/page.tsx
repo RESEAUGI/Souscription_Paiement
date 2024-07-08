@@ -1,15 +1,15 @@
 "use client";
-import { PaymentMethod, PlanData, SubPlan, UserSubscription } from '@/datas/types';
+import { PaymentMethod, SubPlan, UserSubscription } from '@/datas/types';
 //import _features from "@/datas/features";
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 
 const Page = ({ params }: { params: { plan: string[] } }) => {
    ;
   const profile = parseInt(params.plan[0]);
-  const [_features, setFeatures] = useState<PlanData>({
+  /*const [_features, setFeatures] = useState<PlanData>({
     basic:{
       title: '',
       description: [],
@@ -44,7 +44,7 @@ const Page = ({ params }: { params: { plan: string[] } }) => {
   
       fetchFeatures();
     }, [_features, profile]);
-  const choice =(params.plan[1]=='basic')?_features[params.plan[1]] : (params.plan[1]=='standart')?_features.standart :_features.premium;
+  const choice =(params.plan[1]=='basic')?_features[params.plan[1]] : (params.plan[1]=='standart')?_features.standart :_features.premium;*/
 
 
   const months = parseInt(params.plan[2]);
