@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+          <html lang="en">
       <head>
       <link
                         href="https://rsms.me/inter/inter.css"

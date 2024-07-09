@@ -15,7 +15,7 @@ const _features : {
       content: "Essential offer to start your driver business. Benefit from platform access and basic customer support."
     },
     standart: {
-      title: 'standart',
+      title: 'standard',
       description: [
           'All the benefits of the basic package are included.',
           'Legal support increasing as earning fidelity points',
@@ -50,7 +50,7 @@ const _features : {
       content: "Essential offer to start your driver business. Benefit from platform access and basic customer support."
     },
     standart: {
-      title: 'standart',
+      title: 'standard',
       description: [
           'All the benefits of the basic package are included.',
           'Legal support increasing as earning fidelity points',
@@ -85,7 +85,7 @@ const _features : {
       content: "Essential offer to start your driver business. Benefit from platform access and basic customer support."
     },
     standart: {
-      title: 'standart',
+      title: 'standard',
       description: [
           'All the benefits of the basic package are included.',
           'Legal support increasing as earning fidelity points',
@@ -120,7 +120,7 @@ const _features : {
       content: "Essential offer to start your driver business. Benefit from platform access and basic customer support."
     },
     standart: {
-      title: 'standart',
+      title: 'standard',
       description: [
           'All the benefits of the basic package are included.',
           'Legal support increasing as earning fidelity points',
@@ -155,7 +155,7 @@ const _features : {
       content: "Essential offer to start your driver business. Benefit from platform access and basic customer support."
     },
     standart: {
-      title: 'standart',
+      title: 'standard',
       description: [
           'All the benefits of the basic package are included.',
           'Legal support increasing as earning fidelity points',

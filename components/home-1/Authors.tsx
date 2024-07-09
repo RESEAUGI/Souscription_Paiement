@@ -21,7 +21,7 @@ const Authors = () => {
             <h2 className="h2 mt-4 mb-8 max-w-[600px] leading-snug">
               Find a suitable profile with a perfect plan
             </h2>
-            <div className="max-w-max">
+            <div className="max-w-max flex ">
               <Link href="/pricing-plan" className="btn-primary flex items-center gap-2">
                 view profiles
                 <i className="las la-long-arrow-alt-right text-xl"></i>

@@ -16,25 +16,19 @@ const profiles: Profile[] = [
         description: 'description of a driver without a vehicle',
         url : 'driver-only'
     
-    },
-    {
-        id: 3,
-        description: 'description of a hotel-type subscriber',
-        url : 'hotel-type'
-    
-    },
-    {
-        id: 4,
-        description: 'description of a transport-agency type subscriber',
-        url : 'transport-agency'
-    
-    },
-    {
-        id: 5,
-        description: 'description of a vehicle-company type subscriber',
-        url : 'driver-with-vehicle'
-    
     }
+    // {
+    //     id: 4,
+    //     description: 'description of a transport-agency type subscriber',
+    //     url : 'transport-agency'
+    
+    // },
+    // {
+    //     id: 5,
+    //     description: 'description of a vehicle-company type subscriber',
+    //     url : 'driver-with-vehicle'
+    
+    // }
 ]
 
 export default profiles

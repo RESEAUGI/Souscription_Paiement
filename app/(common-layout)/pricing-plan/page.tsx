@@ -45,7 +45,7 @@ export default function MyPage() {
       {myprofiles.map(
         (profile)=>(
           <div className="m-4 justify-center w-1/4"  key = {profile.id}>
-            <DropDownButton label={profile.url.replaceAll('-', ' ')}  >
+        <DropDownButton label={profile.url.replaceAll('-', ' ')}  >
         <div className="p-4 relative">
           <p className="w-full min-h-[200px] m-4 p-4 bg-primary-light text-xl">
           {profile.description}
