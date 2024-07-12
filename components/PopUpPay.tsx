@@ -1,15 +1,16 @@
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
+import { Fragment, ReactNode } from 'react';
 
 interface PopupProps {
   open: boolean;
   onClose: () => void;
   width: string;
   height: string;
-  position: 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  position: 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'|'top-center'|'bottom-center';
+  children: ReactNode;
 }
 
-export default function Popup({ open, onClose, width, height, position }: PopupProps) {
+export default function Popup({ open, onClose, width, height, position, children }: PopupProps) {
   const getPositionClassName = () => {
     switch (position) {
       case 'center':
@@ -18,6 +19,10 @@ export default function Popup({ open, onClose, width, height, position }: PopupP
         return 'items-start justify-start';
       case 'top-right':
         return 'items-start justify-end';
+        case 'top-center':
+        return 'items-start justify-center';
+        case 'bottom-center':
+        return 'items-start justify-center';
       case 'bottom-left':
         return 'items-end justify-start';
       case 'bottom-right':
@@ -56,8 +61,7 @@ export default function Popup({ open, onClose, width, height, position }: PopupP
           leaveTo="opacity-0 scale-95"
         >
           <div className="bg-white p-4 rounded shadow" style={{ width, height }}>
-            <h3 className="text-lg font-semibold mb-2">Titre de la fenêtre pop-up</h3>
-            <p>Contenu de la fenêtre pop-up.</p>
+            {children}
             <button
               className="mt-4 p-2 bg-gray-200 rounded text-gray-700"
               onClick={onClose}

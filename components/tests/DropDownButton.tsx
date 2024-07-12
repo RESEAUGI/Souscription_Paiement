@@ -16,13 +16,11 @@ const DropdownButton: React.FC<DropdownButtonProps> = ({ label, children }) => {
     <div className=" w-full items-center justify-center ">
       <div className=" w-full flex items-center justify-center ">
       <button
-        className="flex items-center justify-center text-xl px-4 py-4 m-3 bg-primary text-white rounded-full focus:outline-none  min-h-65"
+        className="flex items-center justify-center text-xl px-4 py-4 m-0 hover:bg-blue-400 bg-primary text-white rounded-lg focus:outline-none  w-full"
         onClick={toggleDropdown}
       >
         <span>{label}</span>
-        <i className="las la-car text-xl mx-2"></i>
-  
-
+        {/* <i className="las la-car text-xl mx-2"></i> */}
       </button>
       </div>
       

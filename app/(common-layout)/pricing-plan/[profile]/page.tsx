@@ -3,7 +3,7 @@
 // Import Swiper styles
 import PaySwitch from "@/components/PaySwitch";
 import SubHeadingBtn from "@/components/SubHeadingBtn";
-import { PlanData, Profile } from "@/datas/types";
+import { Plan, PlanData, Profile } from "@/datas/types";
 //import profiles from "@/datas/profiles";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import axios, { AxiosResponse } from "axios";
@@ -19,7 +19,8 @@ const Page = ({params}: {params : {profile: number} }) => {
   const [profiles, setProfiles] = useState<Profile[]>([{
     id: 0,
     description: '',
-    url : ''
+    url : '',
+    statut:'active'
 
 }]);
   
@@ -27,7 +28,9 @@ const Page = ({params}: {params : {profile: number} }) => {
       const fetchPayments = async () => {
         try {
           const response = await axios.get<any, AxiosResponse<any>>('http://localhost:4000/profiles');
-          setProfiles(response.data);
+          const activeProfiles = response.data.filter((profile:Profile )=> profile.statut === 'active');
+          setProfiles(activeProfiles);
+          //setProfiles(response.data);
           //console.log('all profiles : ');
 
           //console.log(response.data);
@@ -44,23 +47,28 @@ const Page = ({params}: {params : {profile: number} }) => {
   //const features = _features[params.profile]
   //console.log(_features[params.profile])
   const [features, setFeatures] = useState<PlanData>({
-    basic:{
+    "basic":{
       title: '',
       description: [],
       prix: 0,
-      content: ""
+      content: "",
+      statut:'active'
     } ,
     premium:{
       title: '',
       description: [],
       prix: 0,
-      content: ""
+      content: "",
+      statut:'active'
+
     },
     standart:{
       title: '',
       description: [],
       prix: 0,
-      content: ""
+      content: "",
+      statut:'active'
+
     }
   });
   
@@ -68,7 +76,8 @@ const Page = ({params}: {params : {profile: number} }) => {
       const fetchFeatures = async () => {
         try {
           const response = await axios.get<any, AxiosResponse<any>>('http://localhost:4000/plans/'+params.profile);
-          setFeatures(response.data);
+          const activePlans = response.data.filter((plan:Plan )=> plan.statut === 'active');
+          setFeatures(activePlans);
           //console.log(response.data);
   
         } catch (error) {
@@ -80,9 +89,9 @@ const Page = ({params}: {params : {profile: number} }) => {
     }, [features, params.profile]);
 
 
-const basic = features["basic"]
-const standart = features["standart"]
-const premium = features["premium"]
+// const basic = features["basic"]
+// const standart = features["standart"]
+// const premium = features["premium"]
   const handleButtonClick = (index: number) => {
     setActiveButton(index);
   };
@@ -113,7 +122,7 @@ const terms =profiles[params.profile-1]? profiles[params.profile-1].url.replaceA
             text="Pricing Plan"
             classes="bg-[var(--primary-light)]"
           />
-          <h2 className="h2 mt-3">Choose Our Pricing Plan</h2>
+          <h2 className="h2 mt-3">Get a Look In Our Pricing Plan</h2>
           <p className="text-neutral-600 pt-5 pb-8 lg:pb-14">
             Here you have our differents pricing plan
             choose the option that fits you the most... 
@@ -125,9 +134,13 @@ const terms =profiles[params.profile-1]? profiles[params.profile-1].url.replaceA
             <div className="row">
               <div className="col-span-12">
                 <div className="flex flex-wrap items-center justify-center gap-4">
+
                   <div className="flex items-center gap-4">
-                    
+
+              {/*ici on choisit les frequences de paiement*/}      
       <div className="flex bg-[var(--primary-light)] rounded">
+
+       { /** on doit recuperer les differentes frequences de paiement  leur label et leur pourcentage de reduction et iterer avec un back */}
       <PaySwitch
         label='monthly'
         onClick={() => handleButtonClick(1)}
@@ -157,122 +170,54 @@ const terms =profiles[params.profile-1]? profiles[params.profile-1].url.replaceA
           </div>
         </div>
         <div className="container">
-          <div className="grid grid-cols-12 g-3 md:gap-0 overflow-hidden">
-            <div className="col-span-12 md:col-span-6 lg:col-span-4 m-3 h-full">
-              <div className="bg-white p-6 h-full">
-                <div className="text-center">
-                 
-                  <p className="mb-0 text-2xl font-medium text-primary">
-                    Basic
-                  </p>
-                  <div className="border border-dashed mt-8 mb-4"></div>
-                  <h1 className="h2 clr-primary-400 mb-2 text-xl"> { 2500*activeButton} FCFA / {activeButton} month </h1>
-                  <p className="m-1" >
-                  {basic.content}                  
-                   </p>
-                  <div className="border border-dashed mt-4 mb-8"></div>
-                  <ul className="flex flex-col gap-4 max-text-30 mx-auto mb-8">
-                    <li className="flex items-center text-2xl gap-2">
-                      <i className="las la-check-circle text-primary"></i>
-                      <p className="mb-0 text-lg text-start">
-                      {basic.description[0]}
-                      </p>
-                    </li>
-                    <li className="flex items-center text-2xl gap-2">
-                      <i className="las la-check-circle text-primary"></i>
-                      <p className="mb-0 text-lg text-start"> {basic.description[1]}</p>
-                    </li>
-                    <li className="flex items-center text-2xl gap-2">
-                      <i className="las la-check-circle text-primary"></i>
-                      <p className="mb-0 text-lg text-start">
-                      {basic.description[2]}
-                      </p>
-                    </li>
-                    
-                  </ul>
-                  <Link href={"/payment-method/" + params.profile + "/basic/" + activeButton} className="w-full rounded-lg btn-outline bg-primary hover:text-xl text-white :bg-primary-400 justify-center  font-semibold">
-                    Choose Plan
-                  </Link>
-                </div>
-              </div>
-            </div>
-            <div className="col-span-12 md:col-span-6 lg:col-span-4 m-3 h-full">
-              <div className="bg-primary p-6 h-full">
-                <div className="text-center">
-                 
-                  <p className="mb-0 text-2xl font-medium text-white">
-                    Standard
-                  </p>
-                  <div className="border border-dashed mt-8 mb-4"></div>
-                  <h1 className="h2 text-white mb-2 text-xl">{ 5000*activeButton} FCFA / {activeButton} month </h1>
-                  <p className="m-1 text-white">
-                  {standart.content}                    </p>
-                  <div className="border border-dashed mt-4 mb-8"></div>
-                  <ul className="flex flex-col gap-4 max-text-30 mx-auto mb-8">
-                    <li className="flex items-center text-2xl gap-2">
-                      <i className="las la-check-circle text-white"></i>
-                      <p className="mb-0 text-lg text-white text-start">
-                      {standart.description[0]}                      </p>
-                    </li>
-                    <li className="flex items-center text-2xl gap-2">
-                      <i className="las la-check-circle text-white"></i>
-                      <p className="mb-0 text-lg text-white text-start">
-                      {standart.description[1]}   
-                      </p>
-                    </li>
-                    <li className="flex items-center text-2xl gap-2">
-                      <i className="las la-check-circle text-white"></i>
-                      <p className="mb-0 text-lg text-white text-start">
-                      {standart.description[2]}   
-                                            </p>
-                    </li>
-                    
-                  </ul>
-                  <Link href={"/payment-method/" + params.profile + "/standart/" + activeButton} className="btn-outline  bg-white hover:bg-white hover:text-xl hover:text-primary text-primary w-full rounded-lg justify-center">
-                    Choose Plan
-                  </Link>
-                </div>
-              </div>
-            </div>
-            <div className="col-span-12 md:col-span-6 lg:col-span-4 m-3 h-full">
-              <div className="p-6 bg-white h-full" >
-                <div className="text-center text-black relative" >
-                 
-                  <p className="mb-0 text-2xl font-medium ">
-                    Premium
-                  </p>
-                  <div className="border border-dashed mt-8 mb-4"></div>
-                  <h1 className="h2  mb-2 text-xl"> { 10000*activeButton} FCFA / {activeButton} month </h1>
-                  <p className="m-1">
-                  {premium.content}   
-                  </p>
-                  <div className="border border-dashed mt-4 mb-8"></div>
-                  <ul className="flex flex-col gap-4 max-text-30 mx-auto mb-8">
-                    <li className="flex items-center text-2xl gap-2">
-                      <i className="las la-check-circle text-primary"></i>
-                      <p className="mb-0 text-lg text-start">
-                      {premium.description[0]}                        </p>
-                    </li>
-                    <li className="flex items-center text-2xl gap-2">
-                      <i className="las la-check-circle text-primary"></i>
-                      <p className="mb-0 text-lg text-start">
-                      {premium.description[1]}   
-                       </p>
-                                          </li>
-                    <li className="flex items-center text-2xl gap-2">
-                      <i className="las la-check-circle text-primary"></i>
-                      <p className="mb-0 text-lg text-start">
-                      {premium.description[0]}    
-                                           </p>
-                    </li>
-                    
-                  </ul>
-                  <Link href={"/payment-method/" + params.profile + "/premium/" + activeButton} className="btn-outline bg-primary hover:text-xl  font-semibold text-white w-full rounded-lg justify-center  bottom-10">
-                    Choose Plan
-                  </Link>
-                </div>
-              </div>
-            </div>
+          <div className="grid grid-cols-12 g-8 md:gap-8 overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300">
+
+            
+          {Object.entries(features).map(([key, plan]) => (
+        <div className="col-span-12 md:col-span-6 lg:col-span-4 mt-4 h-[800px] " key={key}>
+        <div className="bg-white p-6 h-full shadow-lg hover:shadow-2xl transition-shadow duration-300">
+          <div className="text-center">
+           
+            <p className="mb-0 text-2xl font-medium text-primary">
+              {plan.title}
+            </p>
+            <div className="border border-dashed mt-8 mb-4"></div>
+            <h1 className="h2 clr-primary-400 mb-2 text-xl"> { plan.prix*activeButton} FCFA / {activeButton} month </h1>
+            <p className="m-1" >
+            {plan.content}                  
+             </p>
+            <div className="border border-dashed mt-4 mb-8"></div>
+            <ul className="flex flex-col gap-4 max-text-30 mx-auto mb-8">
+              <li className="flex items-center text-2xl gap-2">
+                <i className="las la-check-circle text-primary"></i>
+                <p className="mb-0 text-lg text-start">
+                {plan.description[0]}
+                </p>
+              </li>
+              <li className="flex items-center text-2xl gap-2">
+                <i className="las la-check-circle text-primary"></i>
+                <p className="mb-0 text-lg text-start"> {plan.description[1]}</p>
+              </li>
+              <li className="flex items-center text-2xl gap-2">
+                <i className="las la-check-circle text-primary"></i>
+                <p className="mb-0 text-lg text-start">
+                {plan.description[2]}
+                </p>
+              </li>
+              
+            </ul>
+            {/* <Link href={"/payment-method/" + params.profile + "/basic/" + activeButton} className="w-full absolute bottom-0 rounded-lg btn-outline bg-primary hover:text-xl text-white :bg-primary-400 justify-center  font-semibold ">
+              Choose Plan
+            </Link> */}
+          </div>
+          
+        </div>
+        <Link href={"/payment-method/" + params.profile + "/basic/" + activeButton} className="w-full relative bottom-[60px] rounded-lg btn-outline bg-primary hover:text-xl text-white :bg-primary-400 justify-center  font-semibold ">
+              Choose Plan
+            </Link>
+      </div>
+      ))}
+            
           </div>
         </div>
         <div className="pt-[60px] lg:pt-[120px]">

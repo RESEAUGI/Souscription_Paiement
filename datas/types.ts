@@ -10,7 +10,8 @@ export  interface Payment {
   export interface Profile {
     id: number,
     description: string,
-    url : string
+    url : string,
+    statut:'active'|'inactive'
 
 }
 export interface Plan {
@@ -18,11 +19,13 @@ export interface Plan {
   description: string[];
   prix: number;
   content: string;
+  statut:'active'|'inactive'
 }
 export interface PlanData {
-  basic: Plan;
-  standart: Plan;
-  premium: Plan;
+  
+    
+         [key : string]: Plan
+
 }
 
 export interface PaymentAPIdata {

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import NotificationDropdown from "./NotificationDropdown";
 import ProfileDropdown from "./ProfileDropdown";
@@ -24,7 +25,11 @@ const CommonHeader = () => {
       } duration-300`}>
       <div className="container flex justify-between items-center relative px-3 py-2 lg:py-0 lg:px-0">
         <div className="lg:order-2 flex gap-2 items-center">
+          {/* <Menu/> */}
           {/* <LangDropdown /> */}
+          <Link href="/list" className="btn-tertiary-sm hidden md:block">
+          History
+        </Link>
           <NotificationDropdown />
           <ProfileDropdown />
         </div>

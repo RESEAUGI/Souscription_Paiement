@@ -45,6 +45,9 @@
     .btn-primary-lg{
         @apply btn-primary px-8 py-4 bg-primary;
     }
+    .btn-tertiary-sm{
+        @apply btn-primary px-4 py-2 bg-[var(--tertiary)];
+    }
     .white-text-nav{
         @apply text-gray-600 lg:text-white;
     }

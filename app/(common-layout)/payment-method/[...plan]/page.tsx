@@ -1,32 +1,42 @@
 "use client";
-import { PaymentMethod, SubPlan, UserSubscription } from '@/datas/types';
+import { useRouter } from 'next/navigation';
+
 //import _features from "@/datas/features";
+import { PaymentMethod, Plan, PlanData, SubPlan, UserSubscription } from '@/datas/types';
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 const Page = ({ params }: { params: { plan: string[] } }) => {
-   ;
+   
+   const router = useRouter();
+
   const profile = parseInt(params.plan[0]);
-  /*const [_features, setFeatures] = useState<PlanData>({
+  const [_features, setFeatures] = useState<PlanData>({
     basic:{
       title: '',
       description: [],
       prix: 0,
-      content: ""
+      content: "",
+      statut:'active'
+
     } ,
     premium:{
       title: '',
       description: [],
       prix: 0,
-      content: ""
+      content: "",
+      statut:'active'
+
     },
     standart:{
       title: '',
       description: [],
       prix: 0,
-      content: ""
+      content: "",
+      statut:'active'
+
     }
   });
   
@@ -34,7 +44,9 @@ const Page = ({ params }: { params: { plan: string[] } }) => {
       const fetchFeatures = async () => {
         try {
           const response = await axios.get<any, AxiosResponse<any>>('http://localhost:4000/plans/'+profile);
-          setFeatures(response.data);
+          const activePlans = response.data.filter((plan:Plan )=> plan.statut === 'active');
+          setFeatures(activePlans);
+          //setFeatures(response.data);
           //console.log(response.data);
   
         } catch (error) {
@@ -44,8 +56,8 @@ const Page = ({ params }: { params: { plan: string[] } }) => {
   
       fetchFeatures();
     }, [_features, profile]);
-  const choice =(params.plan[1]=='basic')?_features[params.plan[1]] : (params.plan[1]=='standart')?_features.standart :_features.premium;*/
-
+  const choice =(params.plan[1]=='basic')?_features[params.plan[1]] : (params.plan[1]=='standart')?_features.standart :_features.premium;
+  //const choice =(_features [profile])[params.plan[1]]
 
   const months = parseInt(params.plan[2]);
 
@@ -159,8 +171,9 @@ console.log('formData : '+JSON.stringify(formData));
   }
 
   async function  proceedToPayment() : Promise<Boolean> {
-    const res = await paymentAPI.post<any, AxiosResponse<any>>('/paymentAPI', paymentAPIdata)
-    return res.data.product_id_hash?  true:false;
+    // const res = await paymentAPI.post<any, AxiosResponse<any>>('/paymentAPI', paymentAPIdata)
+    // return res.data.product_id_hash?  true:false;
+
     // .then(response => {
     //   // Traiter la réponse
     //   console.log(response.data);
@@ -171,10 +184,11 @@ console.log('formData : '+JSON.stringify(formData));
     //   console.error(error);
     //   return false
     // });
+    return true;
 }
 async function  subscribeThen() : Promise<Boolean> {
-  const res = await subscriber.post<any, AxiosResponse<any>>('/create', formData)
-  return res.data.product_id_hash?  true:false;
+  // const res = await subscriber.post<any, AxiosResponse<any>>('/create', formData)
+  // return res.data.product_id_hash?  true:false;
   // .then(response => {
   //   // Traiter la réponse
   //   console.log(response.data);
@@ -185,6 +199,7 @@ async function  subscribeThen() : Promise<Boolean> {
   //   console.error(error);
   //   return false
   // });
+  return true;
 }
 function handleFailure() {
   
@@ -194,6 +209,7 @@ alert("sectionfail")  }
     
       const customMsg = "payment succeeded"   
       alert(customMsg)
+      router.push('/list');
 
 
   }
@@ -206,7 +222,7 @@ alert("sectionfail")  }
             <div className="pb-lg-0">
               <div className="bg-white rounded-2xl p-3 sm:p-4 lg:p-6 mb-6">
                 <div className="flex items-center justify-between gap-5 mb-1">
-                <span className="mb-0 text-xl font-bold"> {choice.title.toUpperCase()} Plan </span>
+                <span className="mb-0 text-xl font-bold px-3 py-2 bg-primary text-white"> {choice.title.toUpperCase()} Plan </span>
                 <span className="m-4 px-4 mb-3 text-xl font-semibold">
                       {total_payable_amount} FCFA / {months==1 ? "mois" : months==3? 'trimestre':'An' } 
                     </span>
@@ -224,8 +240,8 @@ alert("sectionfail")  }
                           <span className="clr-neutral-400 inline-block text-sm">
                             {valeur}
                           </span>
-                          <i className="text-2xl las la-edit text-primary"></i>
-                        </div>
+                          <i className="las la-check-circle text-primary"></i>
+                          </div>
                       </div>
                     </div>
                   ))}
@@ -316,6 +332,32 @@ alert("sectionfail")  }
                 
               
               </div>
+              
+              <div className="bg-white rounded-2xl p-3 sm:p-4 lg:p-6 mb-6">
+              <h4 className="mb-6 text-2xl font-semibold">
+                {" "}
+                Enter Promo Code{" "}
+              </h4>
+              <div className="p-2 rounded-full border border-neutral-40 bg-[var(--bg-2)] mb-4">
+                <form action="#" className="flex items-center">
+                  <input
+                    type="text"
+                    placeholder="Promo Code"
+                    className="w-full border-0 bg-transparent text-[var(--neutral-700)] px-3 py-2 ::placeholder-neutral-600 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    className="grid place-content-center px-6 py-3 rounded-full bg-primary text-white border-0 text-sm"
+                  >
+                    Apply
+                  </button>
+                </form>
+              </div>
+              <span className="block text-[var(--neutral-700)]">
+                {promo_discount} % Off Discount
+              </span>
+            </div>
+
             </div>
           </div>
 
@@ -547,7 +589,7 @@ alert("sectionfail")  }
                       <input
                         type="text"
                         className="w-full bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
-                        placeholder="enter paypal email"
+                        placeholder="enter paypal email ex:etudiant@polytechnique.cm"
                         id="paypal-email" name="paypalEmail"
                         value={formData.paypalEmail}
             onChange={handleInputChange}
@@ -558,39 +600,39 @@ alert("sectionfail")  }
                   <div className="grid grid-cols-12 gap-4 lg:gap-6 " >
                     
                     <div className="col-span-12 md:col-span-6">
-                      <label
+                      {/* <label
                         htmlFor="first-name"
-                        className="text-xl font-medium block mb-3"
+                        className="text-lg font-medium block mb-3"
                       >
-                        FIRST NAME
-                      </label>
+                        first name
+                      </label> */}
                       <input
                         type="text"
                         className="w-full bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
-                        placeholder="UBALDI"
+                        placeholder="enter the account first name "
                         id="expiry-date"
                       />
                     </div>
                     <div className="col-span-12 md:col-span-6">
-                      <label
+                      {/* <label
                         htmlFor="last-name"
-                        className="text-xl font-medium block mb-3"
+                        className="text-lg font-medium block mb-3"
                       >
-                        LAST NAME
-                      </label>
+                        last name
+                      </label> */}
                       <input
                         type="text"
                         className="w-full bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
-                        placeholder="UBALDINI"
+                        placeholder="enter the account last name "
                         id="cvc"
                       />
                     </div>
-                    <label
+                    {/* <label
                     htmlFor="number"
-                    className="text-xl font-medium block mb-2"
+                    className="text-lg font-medium block mb-2"
                   >
-                    NUMBER
-                  </label>
+                    number
+                  </label> */}
                     <div className="col-span-12 flex gap-3 h-70 bg-[var(--bg-1)] focus:outline-none border border-neutral-40 rounded-lg py-3 px-5"
 
                     >
@@ -602,7 +644,7 @@ alert("sectionfail")  }
                       />
                       <input
                       type="text"
-                      placeholder="+237 699 71 87 51"
+                      placeholder="enter the phone number "
                       name="phoneNumber"
                       value={formData.phoneNumber}
             onChange={handleInputChange}
