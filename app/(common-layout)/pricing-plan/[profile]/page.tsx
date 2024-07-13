@@ -3,7 +3,7 @@
 // Import Swiper styles
 import PaySwitch from "@/components/PaySwitch";
 import SubHeadingBtn from "@/components/SubHeadingBtn";
-import { Plan, PlanData, Profile } from "@/datas/types";
+import { Config, Plan, PlanData, Profile } from "@/datas/types";
 //import profiles from "@/datas/profiles";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import axios, { AxiosResponse } from "axios";
@@ -16,19 +16,44 @@ import "swiper/css/pagination";
 const Page = ({params}: {params : {profile: number} }) => {
   const [activeButton, setActiveButton] = useState(0);
   //const profile = 1;
+  const [config, setConfig] = useState<Config>( {
+    tax: 0.2,
+    promocodes: [{'PROMO10':0.1}, {'SUMMER50':0.2}],
+    frequencies: [
+      { f: 'quaterly', value: 0.05, id:3 },
+      { f: 'monthly', value: 0.1, id:1 },
+      { f: 'yearly', value: 0.2 ,id:12}
+    ]
+  });
+  
+    useEffect(() => {
+      const fetchConfig = async () => {
+        try {
+          const response = await axios.get<any, AxiosResponse<any>>('http://localhost:4000/configs');
+          setConfig(response.data);
+          //console.log(response.data);
+        } catch (error) {
+          console.error('Erreur lors de la récupération des configs :', error);
+        }
+      };
+  
+      fetchConfig();
+    }, [config]);
+    ////
+
   const [profiles, setProfiles] = useState<Profile[]>([{
     id: 0,
     description: '',
     url : '',
     statut:'active'
-
 }]);
+
   
     useEffect(() => {
       const fetchPayments = async () => {
         try {
           const response = await axios.get<any, AxiosResponse<any>>('http://localhost:4000/profiles');
-          const activeProfiles = response.data.filter((profile:Profile )=> profile.statut === 'active');
+          const activeProfiles =  response.data.filter((profile:Profile )=> profile.statut === 'active');
           setProfiles(activeProfiles);
           //setProfiles(response.data);
           //console.log('all profiles : ');
@@ -48,37 +73,56 @@ const Page = ({params}: {params : {profile: number} }) => {
   //console.log(_features[params.profile])
   const [features, setFeatures] = useState<PlanData>({
     "basic":{
-      title: '',
-      description: [],
-      prix: 0,
-      content: "",
+      title: 'basic',
+      description: ['feature 1','feature 2', 'feature 3', 'feature 4'],
+      prix: 5000,
+      content: "just a sentence",
       statut:'active'
     } ,
-    premium:{
-      title: '',
-      description: [],
-      prix: 0,
-      content: "",
-      statut:'active'
-
-    },
-    standart:{
-      title: '',
-      description: [],
-      prix: 0,
-      content: "",
-      statut:'active'
-
-    }
+    "standart":{
+      title: 'standart',
+      description: ['feature 1','feature 2', 'feature 3', 'feature 4'],
+      prix: 5000,
+      content: "just a sentence",
+      statut:'inactive'
+    } ,
+   
   });
+  const [actfeatures, setActFeatures] = useState<Plan[]>([{
+    title: 'basic',
+    description: ['feature 1','feature 2', 'feature 3', 'feature 4'],
+    prix: 5000,
+    content: "just a sentence",
+    statut:'active'
+  },
+  {
+    title: 'standart',
+    description: ['feature 1','feature 2', 'feature 3', 'feature 4'],
+    prix: 5000,
+    content: "just a sentence",
+    statut:'inactive'
+  }
+])
+
   
     useEffect(() => {
       const fetchFeatures = async () => {
         try {
           const response = await axios.get<any, AxiosResponse<any>>('http://localhost:4000/plans/'+params.profile);
-          const activePlans = response.data.filter((plan:Plan )=> plan.statut === 'active');
-          setFeatures(activePlans);
-          //console.log(response.data);
+          //const activePlans = response.data//.filter((plan:Plan )=> {plan.statut === 'active'});
+          const activePlans = [];
+
+          for (const key in response.data) {
+            if (response.data[key].statut === 'active') {
+              activePlans.push(response.data[key]);
+            }
+          }
+          setActFeatures(activePlans)
+          setFeatures(response.data)
+          console.log(response.data);
+          console.log(JSON.stringify(features));
+          console.log(activePlans);
+
   
         } catch (error) {
           console.error('Erreur lors de la récupération des paiements :', error);
@@ -140,8 +184,15 @@ const terms =profiles[params.profile-1]? profiles[params.profile-1].url.replaceA
               {/*ici on choisit les frequences de paiement*/}      
       <div className="flex bg-[var(--primary-light)] rounded">
 
-       { /** on doit recuperer les differentes frequences de paiement  leur label et leur pourcentage de reduction et iterer avec un back */}
-      <PaySwitch
+       {config.frequencies.sort((a, b) => a.id - b.id).map(ins=>( 
+        <PaySwitch
+        key={ins.id}
+        label={ins.f}
+        onClick={() => handleButtonClick(ins.id)}
+        isActive={activeButton === ins.id}
+      />
+       ))}
+      {/* <PaySwitch
         label='monthly'
         onClick={() => handleButtonClick(1)}
         isActive={activeButton === 1}
@@ -156,7 +207,7 @@ const terms =profiles[params.profile-1]? profiles[params.profile-1].url.replaceA
         label="annually"
         onClick={() => handleButtonClick(12)}
         isActive={activeButton === 12}
-      />
+      /> */}
        </div>
 
                   
@@ -173,13 +224,14 @@ const terms =profiles[params.profile-1]? profiles[params.profile-1].url.replaceA
           <div className="grid grid-cols-12 g-8 md:gap-8 overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300">
 
             
-          {Object.entries(features).map(([key, plan]) => (
+          {
+          Object.entries(actfeatures).map(([key, plan]) => (
         <div className="col-span-12 md:col-span-6 lg:col-span-4 mt-4 h-[800px] " key={key}>
         <div className="bg-white p-6 h-full shadow-lg hover:shadow-2xl transition-shadow duration-300">
           <div className="text-center">
            
             <p className="mb-0 text-2xl font-medium text-primary">
-              {plan.title}
+              {plan.title}{plan.statut}{/*JSON.stringify(plan)*/}{/*JSON.stringify(profiles)*/}
             </p>
             <div className="border border-dashed mt-8 mb-4"></div>
             <h1 className="h2 clr-primary-400 mb-2 text-xl"> { plan.prix*activeButton} FCFA / {activeButton} month </h1>
@@ -212,7 +264,7 @@ const terms =profiles[params.profile-1]? profiles[params.profile-1].url.replaceA
           </div>
           
         </div>
-        <Link href={"/payment-method/" + params.profile + "/basic/" + activeButton} className="w-full relative bottom-[60px] rounded-lg btn-outline bg-primary hover:text-xl text-white :bg-primary-400 justify-center  font-semibold ">
+        <Link href={"/payment-method/" + params.profile + "/"+plan.title+"/" + activeButton} className="w-full relative bottom-[60px] rounded-lg btn-outline bg-primary hover:text-xl text-white :bg-primary-400 justify-center  font-semibold ">
               Choose Plan
             </Link>
       </div>

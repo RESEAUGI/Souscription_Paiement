@@ -2,17 +2,46 @@
 import { useRouter } from 'next/navigation';
 
 //import _features from "@/datas/features";
-import { PaymentMethod, Plan, PlanData, SubPlan, UserSubscription } from '@/datas/types';
+import { Config, PaymentMethod, Plan, PlanData, SubPlan, UserSubscription } from '@/datas/types';
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 const Page = ({ params }: { params: { plan: string[] } }) => {
-   
+  const profile = parseInt(params.plan[0]);
    const router = useRouter();
 
-  const profile = parseInt(params.plan[0]);
+   const [config, setConfig] = useState<Config>( {
+    tax: 0.2,
+    promocodes: [{'PROMO10':0.1}, {'SUMMER50':0.2}],
+    frequencies: [
+      { f: 'quaterly', value: 0.05, id:3 },
+      { f: 'monthly', value: 0.1, id:1 },
+      { f: 'yearly', value: 0.2 ,id:12}
+    ]
+  });
+  
+    useEffect(() => {
+      const fetchConfig = async () => {
+        try {
+          const response = await axios.get<any, AxiosResponse<any>>('http://localhost:4000/configs');
+          setConfig(response.data);
+          //console.log(response.data);
+          const a = config.frequencies.find(freq => freq.id === profile)?.value
+          setServiceCharge(a? a:0);
+
+        } catch (error) {
+          console.error('Erreur lors de la récupération des configs :', error);
+        }
+      };
+  
+      fetchConfig();
+    }, [config, profile]);
+ const [promo, setPromo] = useState('')
+ const [paid, setPaid] = useState(false)
+
+  
   const [_features, setFeatures] = useState<PlanData>({
     basic:{
       title: '',
@@ -39,13 +68,37 @@ const Page = ({ params }: { params: { plan: string[] } }) => {
 
     }
   });
+  const [actfeatures, setActFeatures] = useState<Plan[]>([{
+    title: 'basic',
+    description: ['feature 1','feature 2', 'feature 3', 'feature 4'],
+    prix: 5000,
+    content: "just a sentence",
+    statut:'active'
+  },
+  {
+    title: 'standart',
+    description: ['feature 1','feature 2', 'feature 3', 'feature 4'],
+    prix: 5000,
+    content: "just a sentence",
+    statut:'inactive'
+  }
+])
   
     useEffect(() => {
       const fetchFeatures = async () => {
         try {
           const response = await axios.get<any, AxiosResponse<any>>('http://localhost:4000/plans/'+profile);
-          const activePlans = response.data.filter((plan:Plan )=> plan.statut === 'active');
-          setFeatures(activePlans);
+          //const activePlans = response.data.filter((plan:Plan )=> plan.statut === 'active');
+          const activePlans = [];
+
+          for (const key in response.data) {
+            if (response.data[key].statut === 'active') {
+              activePlans.push(response.data[key]);
+            }
+          }
+          setActFeatures(activePlans)
+          setFeatures(response.data)
+          //setFeatures(activePlans);
           //setFeatures(response.data);
           //console.log(response.data);
   
@@ -65,10 +118,10 @@ const Page = ({ params }: { params: { plan: string[] } }) => {
   const transaction_id = "20p524";
   const date = new Date(Date.now());
   const subscription_date = date.toLocaleString();
-  const tax = 4;
+  const [tax,setTax] = useState(0);
   const subtotal = choice.prix * months;
-  const service_charge = 10;
-  const promo_discount = 0;
+  const [service_charge,setServiceCharge] = useState(0)
+  const [promo_discount, setPromoDiscount] = useState(0);
   const expiryDate = new Date();
 
   expiryDate.setMonth(date.getMonth() + months);
@@ -86,7 +139,7 @@ const Page = ({ params }: { params: { plan: string[] } }) => {
     headers: {'Content-Type': 'application/json','Accept': 'application/json'}
   });  
   const paymentAPI: AxiosInstance = axios.create({
-    baseURL: 'http://localhost:4000',
+    baseURL: 'https://my-coolpay.com/api/118a4852-7df8-46d9-834b-23b4ef25aaab',
     timeout: 5000,
     headers: {'Content-Type': 'application/json','Accept': 'application/json'}
   });
@@ -97,8 +150,8 @@ const Page = ({ params }: { params: { plan: string[] } }) => {
   });
   let total_payable_amount =
     subtotal *
-    (1 - tax / 100) *
-    (1 + service_charge / 100) *
+    (1 + tax / 100) *
+    (service_charge?(1 - service_charge / 100):1) *
     (1 - promo_discount / 100);
 total_payable_amount= parseFloat(total_payable_amount.toFixed(3))
 
@@ -124,16 +177,21 @@ const subplan:SubPlan= {
 
  })
  const [paymentAPIdata, setpaymentAPIdata] = useState({
-  product_id:profile+'//'+choice.title, //l'id du produit que le client paye *
-  amount:total_payable_amount, // prix*
+  //product_id:profile+'//'+choice.title, //l'id du produit que le client paye *
+  //amount:total_payable_amount, // prix*
   transaction_reason:'souscription', // "reservation" ou "souscription" *
-  phone_number :formData.phoneNumber,// (* pour le paiement mobile) et null pour le paiement par carte
+  //phone_number :formData.phoneNumber,// (* pour le paiement mobile) et null pour le paiement par carte
   customer_name :'',// nom du client
   customer_email:'', 
-  langague :  'eng',// langue du client(eng OU fr) en minuscule
-  description:profile+'//'+choice.title, // decription du produit à payer
-  currency:'FCFA',
-  payment_type:formData.methodType,   // "mobile" ou "card"
+  //langague :  'eng',// langue du client(eng OU fr) en minuscule
+  //description:profile+'//'+choice.title, // decription du produit à payer
+  //currency:'FCFA',
+  //payment_type:formData.methodType,
+  "transaction_amount": 10,
+    "transaction_currency": "XAF",
+    "app_transaction_ref": "",
+    "customer_phone_number":formData.phoneNumber,
+    "customer_lang": "en"   // "mobile" ou "card"
  })
  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
   setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -152,8 +210,8 @@ const handleInputChangep = (e: React.ChangeEvent<HTMLInputElement | HTMLTextArea
 //   console.error(error);
 // });
 if (!paymentAPIdata.customer_email|| !paymentAPIdata.customer_name) validateAddress(false)
-  paymentAPIdata.amount = total_payable_amount;
-paymentAPIdata.phone_number = formData.phoneNumber;
+  paymentAPIdata.transaction_amount =10 //total_payable_amount;
+paymentAPIdata.customer_phone_number = formData.phoneNumber;
 
 formData.methodType=isActive==2?'paypal': isActive>2? 'mobile':'card';
 formData.provider = isActive==3?'mtn':isActive==4?'orange':null;
@@ -171,21 +229,47 @@ console.log('formData : '+JSON.stringify(formData));
   }
 
   async function  proceedToPayment() : Promise<Boolean> {
-    // const res = await paymentAPI.post<any, AxiosResponse<any>>('/paymentAPI', paymentAPIdata)
-    // return res.data.product_id_hash?  true:false;
+     const res = await paymentAPI.post<any, AxiosResponse<any>>('/paylink', paymentAPIdata)
+     // Ouvrir une nouvelle fenêtre
+const newWindow = window.open(res.data.payment_url, '_blank', 'width=800,height=600');
+// Écouter l'événement "loadstart" pour détecter le début du chargement de la nouvelle URL
+newWindow?.addEventListener('loadstart', () => {
+  console.log('La nouvelle fenêtre a commencé à charger une nouvelle URL.');
 
-    // .then(response => {
-    //   // Traiter la réponse
-    //   console.log(response.data);
-    //   return true
-    // })
-    // .catch((error: AxiosError) => {
-    //   // Gérer les erreurs
-    //   console.error(error);
-    //   return false
-    // });
-    return true;
+  // Fermer la nouvelle fenêtre
+  newWindow?.close();
+});
+console.log('https://my-coolpay.com/api/118a4852-7df8-46d9-834b-23b4ef25aaab/checkStatus/'+res.data.transaction_ref);
+
+  const result = await fetch('https://my-coolpay.com/api/118a4852-7df8-46d9-834b-23b4ef25aaab/checkStatus/'+res.data.transaction_ref)
+  ;let resutat = await result.json()
+  console.log(resutat);
+  const startTime = Date.now();
+
+  //Écouter l'événement "load" pour détecter la fin du chargement de la nouvelle URL
+  while (!(resutat.transaction_status=== 'SUCCESS')||!(resutat.transaction_status=== 'FAILED')) {
+    if(Date.now() - startTime > 120000) break
+    // Effectuer des actions dans la boucle
+    console.log('waiting 3s');
+    console.log(resutat.transaction_status);
+    
+    setTimeout(() => {
+      console.log('nouvelle tentative...'+(Date.now() - startTime )/1000);
+    }, 3000);
+    const result = await fetch('https://my-coolpay.com/api/118a4852-7df8-46d9-834b-23b4ef25aaab/checkStatus/'+res.data.transaction_ref)
+  ; resutat = await result.json()
+  console.log(resutat);
+  
+  }
+  if (resutat.transaction_message === 'Votre transaction a été effectuée avec succès !'|| resutat.transaction_status=== 'SUCCESS') {
+setPaid(true)  }
+
+console.log(paid);
+
+   
+    return paid;
 }
+
 async function  subscribeThen() : Promise<Boolean> {
   // const res = await subscriber.post<any, AxiosResponse<any>>('/create', formData)
   // return res.data.product_id_hash?  true:false;
@@ -316,7 +400,7 @@ alert("sectionfail")  }
                       placeholder="Enter Address"
                     ></textarea>
                   </div>
-                 
+                
                 </div>
                 
                 <a 
@@ -335,19 +419,33 @@ alert("sectionfail")  }
               
               <div className="bg-white rounded-2xl p-3 sm:p-4 lg:p-6 mb-6">
               <h4 className="mb-6 text-2xl font-semibold">
-                {" "}
                 Enter Promo Code{" "}
               </h4>
               <div className="p-2 rounded-full border border-neutral-40 bg-[var(--bg-2)] mb-4">
-                <form action="#" className="flex items-center">
+                <form onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+  }} className="flex items-center">
                   <input
                     type="text"
                     placeholder="Promo Code"
-                    className="w-full border-0 bg-transparent text-[var(--neutral-700)] px-3 py-2 ::placeholder-neutral-600 focus:outline-none"
+                        id="promo" name="promo"
+                    value={promo}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>)=>{
+              setPromo(e.target.value)
+            }}
+                    className="w-full border-0 bg-transparent text-[var(--neutral-700)] px-3 py-2 focus:outline-none"
                   />
                   <button
                     type="button"
                     className="grid place-content-center px-6 py-3 rounded-full bg-primary text-white border-0 text-sm"
+                    onClick={()=>{
+                      if(  config.promocodes.find(obj => promo in obj)){
+                        const a = config.promocodes.find(obj => promo in obj)
+                          setPromoDiscount( a? a[promo]:0)
+                      }else{
+                          alert('unknown promo code')
+                      }
+                    }}
                   >
                     Apply
                   </button>
@@ -719,7 +817,7 @@ alert("sectionfail")  }
                 onClick={async () => {
                   if(addressValidated && credentialConfirmed){
                     const infos = getPaymentDatas()
-                    const result = await proceedToPayment() && await subscribeThen()
+                    const result = await proceedToPayment()// && await subscribeThen()
 
                     result? handleSuccess() : handleFailure()
                   }

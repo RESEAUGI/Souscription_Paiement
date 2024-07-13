@@ -1,3 +1,20 @@
+export interface Config {
+  tax: number;
+  promocodes: PromocodeWithDiscount[];
+  frequencies: Frequency[];
+}
+type PromocodeWithDiscount = {
+  [key: string]: number;
+};
+
+export interface Frequency {
+  f: string;
+  value: number;
+  id:number
+}
+
+
+
 export  interface Payment {
     id: string;
     author: string;
@@ -73,3 +90,4 @@ export interface PaymentAPIdata {
   phoneNumber:string|null;
   paypalEmail:string|null;
  }
+

@@ -1,6 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 import DropDownButton from "@/components/tests/DropDownButton";
+import { useRouter } from 'next/navigation';
 
 // Import Swiper styles
 import SubHeadingBtn from "@/components/SubHeadingBtn";
@@ -15,7 +16,7 @@ import "swiper/css/pagination";
 
 export default function MyPage() {
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
- 
+ const router  =  useRouter()
   const handleOpenCreateDialog = () => setOpenCreateDialog(!openCreateDialog);
   const [myprofiles, setProfiles] = useState<Profile[]>([]);
   
