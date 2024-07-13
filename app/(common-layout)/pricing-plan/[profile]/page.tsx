@@ -6,24 +6,31 @@ import SubHeadingBtn from "@/components/SubHeadingBtn";
 import _features from "@/datas/features";
 import profiles from "@/datas/profiles";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
+import axios from "axios";
 import { log, profile } from "console";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
 
 const Page = ({params}: {params : {profile: number} }) => {
-  const [activeButton, setActiveButton] = useState(0);
+  const [activeButton, setActiveButton] = useState(1);
   //const profile = 1;
-  console.log(params.profile);
+  // console.log(params.profile);
   
   const features = _features[params.profile]
-  console.log(_features[params.profile])
+  // console.log(_features[params.profile])
 const basic = features["basic"]
 const standart = features["standart"]
 const premium = features["premium"]
+const [Basic,SetBasic]=useState({})
+const [Standard,SetStandard]=useState({})
+const [Premium,SetPremium]=useState({})
+const [descriptionBasic,SetDescriptionBasic]=useState([])
+const [descriptionStandard,SetDescriptionStandard]=useState([])
+const [descriptionPremium,SetDescriptionPremium]=useState([])
 
   const handleButtonClick = (index: number) => {
     setActiveButton(index);
@@ -38,6 +45,57 @@ const premium = features["premium"]
       setActiveButton(index);
     }
   };
+
+  useEffect(()=>{
+    axios.get("http://localhost:5000/find_plan")
+    .then((response) => {
+      const results=response.data
+      if (activeButton === 1) {
+        const result = results.filter((responseItem:any) => responseItem.type==="monthly")
+        const plan1=result.find((responseItem:any) => responseItem.title=="basic")
+        SetBasic(plan1)
+        SetDescriptionBasic(plan1.description)
+        const plan2=result.find((responseItem:any) => responseItem.title=="standard")
+        SetStandard(plan2)
+        SetDescriptionStandard(plan2.description)
+        const plan3=result.find((responseItem:any) => responseItem.title=="premium")
+        SetPremium(plan3)
+        SetDescriptionPremium(plan3.description)
+        console.log(result);
+      }
+      if (activeButton === 3) {
+        const result = results.filter((responseItem:any) => responseItem.type==="quarterly")
+        const plan1=result.find((responseItem:any) => responseItem.title=="basic")
+        SetBasic(plan1)
+        SetDescriptionBasic(plan1.description)
+        const plan2=result.find((responseItem:any) => responseItem.title=="standard")
+        SetStandard(plan2)
+        SetDescriptionStandard(plan2.description)
+        const plan3=result.find((responseItem:any) => responseItem.title=="premium")
+        SetPremium(plan3)
+        SetDescriptionPremium(plan3.description)
+        console.log(result);
+      }
+      if (activeButton === 12) {
+        const result = results.filter((responseItem:any) => responseItem.type==="annually")
+        const plan1=result.find((responseItem:any) => responseItem.title=="basic")
+        SetBasic(plan1)
+        SetDescriptionBasic(plan1.description)
+        const plan2=result.find((responseItem:any) => responseItem.title=="standard")
+        SetStandard(plan2)
+        SetDescriptionStandard(plan2.description)
+        const plan3=result.find((responseItem:any) => responseItem.title=="premium")
+        SetPremium(plan3)
+        SetDescriptionPremium(plan3.description)
+        console.log(result);
+      }
+      
+    })
+    .catch((error) =>{
+      console.log(error);
+      
+    })
+  },[activeButton])
 
 const terms = profiles[(params.profile)-1].url.replaceAll('-',' ')
 
@@ -86,10 +144,6 @@ const terms = profiles[(params.profile)-1].url.replaceAll('-',' ')
         isActive={activeButton === 12}
       />
        </div>
-
-                  
-                 
-
                   </div> 
                   
                 </div>
@@ -107,28 +161,31 @@ const terms = profiles[(params.profile)-1].url.replaceAll('-',' ')
                     Basic
                   </p>
                   <div className="border border-dashed mt-8 mb-4"></div>
-                  <h1 className="h2 clr-primary-400 mb-2 text-xl"> { 2500*activeButton} FCFA / {activeButton} month </h1>
+                  <h1 className="h2 clr-primary-400 mb-2 text-xl"> { Basic.amount} FCFA / {activeButton} month </h1>
                   <p className="m-1" >
-                  {basic.content}                  
+                  {Basic.content}                  
                    </p>
                   <div className="border border-dashed mt-4 mb-8"></div>
                   <ul className="flex flex-col gap-4 max-text-30 mx-auto mb-8">
+                  {descriptionBasic.map((description)=>(
                     <li className="flex items-center text-2xl gap-2">
                       <i className="las la-check-circle text-primary"></i>
                       <p className="mb-0 text-lg text-start">
-                      {basic.description[0]}
+                        {description}
                       </p>
                     </li>
-                    <li className="flex items-center text-2xl gap-2">
+                  ))}
+
+                    {/* <li className="flex items-center text-2xl gap-2">
                       <i className="las la-check-circle text-primary"></i>
-                      <p className="mb-0 text-lg text-start"> {basic.description[1]}</p>
+                      <p className="mb-0 text-lg text-start"> {descriptionBasic[1]}</p>
                     </li>
                     <li className="flex items-center text-2xl gap-2">
                       <i className="las la-check-circle text-primary"></i>
                       <p className="mb-0 text-lg text-start">
-                      {basic.description[2]}
+                      {descriptionBasic[2]}
                       </p>
-                    </li>
+                    </li> */}
                     
                   </ul>
                   <Link href={"/payment-method/" + params.profile + "/basic/" + activeButton} className="w-full rounded-lg btn-outline bg-primary hover:text-xl text-white :bg-primary-400 justify-center  font-semibold">
@@ -145,28 +202,36 @@ const terms = profiles[(params.profile)-1].url.replaceAll('-',' ')
                     Standard
                   </p>
                   <div className="border border-dashed mt-8 mb-4"></div>
-                  <h1 className="h2 text-white mb-2 text-xl">{ 5000*activeButton} FCFA / {activeButton} month </h1>
+                  <h1 className="h2 text-white mb-2 text-xl">{ Standard.amount} FCFA / {activeButton} month </h1>
                   <p className="m-1 text-white">
-                  {standart.content}                    </p>
+                  {Standard.content}                    </p>
                   <div className="border border-dashed mt-4 mb-8"></div>
                   <ul className="flex flex-col gap-4 max-text-30 mx-auto mb-8">
+                  {descriptionStandard.map((description)=>(
                     <li className="flex items-center text-2xl gap-2">
                       <i className="las la-check-circle text-white"></i>
                       <p className="mb-0 text-lg text-white text-start">
-                      {standart.description[0]}                      </p>
+                        {description}
+                      </p>
+                    </li>
+                  ))}
+                    {/* <li className="flex items-center text-2xl gap-2">
+                      <i className="las la-check-circle text-white"></i>
+                      <p className="mb-0 text-lg text-white text-start">
+                      {descriptionStandard[0]}                      </p>
                     </li>
                     <li className="flex items-center text-2xl gap-2">
                       <i className="las la-check-circle text-white"></i>
                       <p className="mb-0 text-lg text-white text-start">
-                      {standart.description[1]}   
+                      {descriptionStandard[1]}   
                       </p>
                     </li>
                     <li className="flex items-center text-2xl gap-2">
                       <i className="las la-check-circle text-white"></i>
                       <p className="mb-0 text-lg text-white text-start">
-                      {standart.description[2]}   
+                      {descriptionStandard[2]}   
                                             </p>
-                    </li>
+                    </li> */}
                     
                   </ul>
                   <Link href={"/payment-method/" + params.profile + "/standart/" + activeButton} className="btn-outline  bg-white hover:bg-white hover:text-xl hover:text-primary text-primary w-full rounded-lg justify-center">
@@ -179,33 +244,41 @@ const terms = profiles[(params.profile)-1].url.replaceAll('-',' ')
               <div className="p-6 bg-white h-full" >
                 <div className="text-center text-black relative" >
                  
-                  <p className="mb-0 text-2xl font-medium ">
+                  <p className="mb-0 text-2xl font-medium text-primary">
                     Premium
                   </p>
                   <div className="border border-dashed mt-8 mb-4"></div>
-                  <h1 className="h2  mb-2 text-xl"> { 10000*activeButton} FCFA / {activeButton} month </h1>
+                  <h1 className="h2  mb-2 text-xl"> { Premium.amount} FCFA / {activeButton} month </h1>
                   <p className="m-1">
-                  {premium.content}   
+                  {Premium.content}   
                   </p>
                   <div className="border border-dashed mt-4 mb-8"></div>
                   <ul className="flex flex-col gap-4 max-text-30 mx-auto mb-8">
+                  {descriptionPremium.map((description)=>(
                     <li className="flex items-center text-2xl gap-2">
                       <i className="las la-check-circle text-primary"></i>
                       <p className="mb-0 text-lg text-start">
-                      {premium.description[0]}                        </p>
+                        {description}
+                      </p>
+                    </li>
+                  ))}
+                    {/* <li className="flex items-center text-2xl gap-2">
+                      <i className="las la-check-circle text-primary"></i>
+                      <p className="mb-0 text-lg text-start">
+                      {descriptionPremium[0]}                        </p>
                     </li>
                     <li className="flex items-center text-2xl gap-2">
                       <i className="las la-check-circle text-primary"></i>
                       <p className="mb-0 text-lg text-start">
-                      {premium.description[1]}   
+                      {descriptionPremium[1]}   
                        </p>
                                           </li>
                     <li className="flex items-center text-2xl gap-2">
                       <i className="las la-check-circle text-primary"></i>
                       <p className="mb-0 text-lg text-start">
-                      {premium.description[0]}    
-                                           </p>
-                    </li>
+                      {descriptionPremium[0]}    
+                      </p>
+                    </li> */}
                     
                   </ul>
                   <Link href={"/payment-method/" + params.profile + "/premium/" + activeButton} className="btn-outline bg-primary hover:text-xl  font-semibold text-white w-full rounded-lg justify-center  bottom-10">

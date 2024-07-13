@@ -1,7 +1,7 @@
 "use client";
 import _features from "@/datas/features";
 import { Data } from "@/datas/types";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -33,6 +33,8 @@ const router = useRouter()
   const [promo_discount,setPromo_discount]=useState(0);
   const [name,setName]=useState("")
   const [AdressEmail,setAdressEmail]=useState("")
+  const [message,setMessage]=useState("")
+  const [paid, setPaid] = useState(false)
 
 
   //Backend
@@ -50,6 +52,7 @@ const [paymentDate,setPayementDate]=useState("")
 const [status,setStatus]=useState("")
 const [endDate,setEndDate]=useState("")
 const [startDate,setStartDate]=useState("")
+const [payId,setPaymentId]=useState("")
 
 const data={
   userId: "ec9e4f82-f7d9-4624-aed6-34ad54e795c9",
@@ -66,7 +69,8 @@ const data={
   cvc:cvc,
   provider:provider,
   phoneNumber:phoneNumber,
-  paypalEmail:paypalEmail
+  paypalEmail:paypalEmail,
+  paymentMethodId:payId
 }
 const handleData=()=>{
   confirmCredential(!credentialConfirmed);
@@ -99,7 +103,7 @@ const handleData=()=>{
 }
 
 const sendData: Data = {
-  transaction_amount: amount,
+  transaction_amount: 10,
   transaction_currency: 'XAF',
   transaction_reason: 'Souscription sur placewise',
   customer_phone_number: phoneNumber,
@@ -118,13 +122,78 @@ const validate=async()=>{
     }
   ).then((response)=>{
     console.log(response.status);
-    
+    handleApply()
   })
   .catch((error)=>{
     console.log(error);
     
   })
 }
+
+  async function  proceedToPayment() : Promise<Boolean> {
+    const res = await axios.post<any, AxiosResponse<any>>('https://my-coolpay.com/api/118a4852-7df8-46d9-834b-23b4ef25aaab/paylink', sendData)
+    // Ouvrir une nouvelle fenêtre
+  const newWindow = window.open(res.data.payment_url, '_blank', 'width=800,height=600');
+  
+  // Écouter l'événement "loadstart" pour détecter le début du chargement de la nouvelle URL
+//   newWindow?.addEventListener('loadstart', () => {
+//   console.log('La nouvelle fenêtre a commencé à charger une nouvelle URL.');
+
+//  // Fermer la nouvelle fenêtre
+//  newWindow?.close();
+// });
+console.log('https://my-coolpay.com/api/118a4852-7df8-46d9-834b-23b4ef25aaab/checkStatus/'+res.data.transaction_ref);
+setPaymentId(res.data.transaction_ref)
+
+ const result = await fetch('https://my-coolpay.com/api/118a4852-7df8-46d9-834b-23b4ef25aaab/checkStatus/'+res.data.transaction_ref)
+ ;
+ let resutat = await result.json()
+ console.log(resutat);
+ const startTime = Date.now();
+
+ //Écouter l'événement "load" pour détecter la fin du chargement de la nouvelle URL
+ while (!(resutat.transaction_status=== 'SUCCESS')||!(resutat.transaction_status=== 'FAILED')) {
+   if(Date.now() - startTime > 30000) break
+   // Effectuer des actions dans la boucle
+   console.log('waiting 3s');
+   console.log(resutat.transaction_status);
+   
+   setTimeout(() => {
+     console.log('nouvelle tentative...'+(Date.now() - startTime )/1000);
+   }, 3000);
+   const result = await fetch('https://my-coolpay.com/api/118a4852-7df8-46d9-834b-23b4ef25aaab/checkStatus/'+res.data.transaction_ref)
+ ; resutat = await result.json()
+ console.log(resutat);
+ 
+ }
+ if (resutat.transaction_message === 'Votre transaction a été effectuée avec succès !' || resutat.transaction_status=== 'SUCCESS') {
+setPaid(true)  }
+
+console.log(paid);
+// if (newWindow) {
+//   newWindow.addEventListener('unload', () => {
+//     newWindow.close();
+//   });
+
+//   newWindow.addEventListener('beforeunload', () => {
+//     newWindow.close();
+//   });
+// }
+
+if (newWindow) {
+  newWindow.addEventListener('unload', () => {
+    newWindow.close();
+  });
+
+  newWindow.addEventListener('beforeunload', () => {
+    newWindow.close();
+  });
+}
+
+  
+   return paid;
+}
+
 
 //whith CoolPay API 
 // const validate=async()=>{
@@ -183,12 +252,48 @@ const handleAddressEmail=(e:ChangeEvent<HTMLInputElement>)=>{
   setAdressEmail(e.target.value)
 }
 
-const handleApply=()=>{
-  if (promocode==="GI2025") {
-    setPromo_discount(20)
-  } else {
-    setPromo_discount(0)
-  }
+const handleApply=async()=>{
+  await axios.get("http://localhost:5000/get_promo")
+  .then(async(response)=>{
+    const results=response.data
+    console.log(results);
+    
+    const res=results.find((result:any)=>result.code===promocode)
+    console.log(res);
+    
+    if (res) {
+      // setPromo_discount(res.discount)
+      const newstate={code: res.code, validity: res.validity, discount: res.discount, status: 'inactive', startDate:Date.now()}
+      await axios.post("http://localhost:5000/delete_promo",res)
+      .then((response)=>{
+        console.log(response);
+      })
+      .catch((error)=>{
+        console.log(error);
+      })
+
+      await axios.post("http://localhost:5000/save_promo",newstate)
+      .then((response)=>{
+        console.log(response);
+      })
+      .catch((error)=>{
+        console.log(error);
+        
+      })
+    }else{
+      if (promocode ==="") {
+        setMessage("Enter a code")
+      } else {
+        setMessage("This promo code is already used or not available")
+      }
+      
+      console.log("don't exist");
+    }
+  })
+  .catch((error)=>{
+    console.log(error);
+    
+  })
 }
 //Backend
   const handleGoBack = () => {
@@ -263,13 +368,10 @@ type Query {
     */
   }
 
-  async function  proceedToPayment() : Promise<Boolean> {
-const verdict = true;
-/*  */  
-
-
-return verdict
-}
+// async function  proceedToPayment() : Promise<Boolean> {
+//   const verdict = true;
+// return verdict
+// }
 function handleFailure() {
   
 alert("sectionfail")  }
@@ -277,8 +379,7 @@ alert("sectionfail")  }
   function handleSuccess() {
       const customMsg = "payment succeeded"   
       alert(customMsg)
-
-
+      validate()
   }
 
   return (
@@ -307,7 +408,7 @@ alert("sectionfail")  }
                           <span className="clr-neutral-400 inline-block text-sm">
                             {valeur}
                           </span>
-                          <i className="text-2xl las la-edit text-primary"></i>
+                          <i className="text-2xl las la-check text-primary"></i>
                         </div>
                       </div>
                     </div>
@@ -384,9 +485,7 @@ alert("sectionfail")  }
                   </div>
                  
                 </div>
-                <Link 
-                href="" legacyBehavior
-              >
+
                 <a 
                 className={`link inline-flex items-center gap-2 py-3 px-6 rounded-lg  text-white :bg-primary-400 hover:text-white font-medium w-full justify-center ${addressValidated? 'bg-neutral-700':"bg-primary"}`}
 
@@ -395,40 +494,12 @@ alert("sectionfail")  }
                       }} >
                         <span className="inline-block">  {addressValidated? "address validated": 'validate Address'} </span>
                       </a>
-                
-              </Link>
               </div>
             </div>
           </div>
 
           <div className="col-span-12 lg:col-span-6">
-            <div className="bg-white rounded-2xl p-3 sm:p-4 lg:p-6 mb-6">
-              <h4 className="mb-6 text-2xl font-semibold">
-                {" "}
-                Enter Promo Code{" "}
-              </h4>
-              <div className="p-2 rounded-full border border-neutral-40 bg-[var(--bg-2)] mb-4">
-                <form action="#" className="flex items-center">
-                  <input
-                    value={promocode}
-                    onChange={handlePromoCode}
-                    type="text"
-                    placeholder="Promo Code"
-                    className="w-full border-0 bg-transparent text-[var(--neutral-700)] px-3 py-2 ::placeholder-neutral-600 focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    className="grid place-content-center px-6 py-3 rounded-full bg-primary text-white border-0 text-sm"
-                    onClick={handleApply}
-                  >
-                    Apply
-                  </button>
-                </form>
-              </div>
-              <span className="block text-[var(--neutral-700)]">
-                {promo} % Off Discount
-              </span>
-            </div>
+
 
             <div className="bg-white rounded-2xl p-3 sm:p-4 lg:p-6 mb-5">
               <h4 className="mb-6 text-2xl font-semibold"> Payment methods </h4>
@@ -704,9 +775,6 @@ alert("sectionfail")  }
 
                   </>
                 )}
-                <Link 
-                href="" legacyBehavior
-              >
                 <a 
                 className={`link inline-flex items-center gap-2 py-3 px-6 rounded-lg  text-white :bg-primary-400 hover:text-white font-medium w-full justify-center ${credentialConfirmed? 'bg-neutral-700':"bg-primary"}`}
 
@@ -716,12 +784,60 @@ alert("sectionfail")  }
                       }} >
                         <span className="inline-block">  {credentialConfirmed? "Credentials confirmed": 'confirm credentials'} </span>
                       </a>
-                
-              </Link>
             </div>
+            <div className="bg-white rounded-2xl p-3 sm:p-4 lg:p-6 mb-6">
+              <h4 className="mb-6 text-2xl font-semibold">
+                {" "}
+                Enter Promo Code{" "}
+              </h4>
+              <p className="italic text-[red]">{message}</p>
+              <div className="p-2 rounded-full border border-neutral-40 bg-[var(--bg-2)] mb-4">
+                <form action="#" className="flex items-center">
+                  <input
+                    value={promocode}
+                    onChange={handlePromoCode}
+                    type="text"
+                    placeholder="Promo Code"
+                    className="w-full border-0 bg-transparent text-[var(--neutral-700)] px-3 py-2 ::placeholder-neutral-600 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    className="grid place-content-center px-6 py-3 rounded-full bg-primary text-white border-0 text-sm"
+                    onClick={async()=>{
+                      await axios.get("http://localhost:5000/get_promo")
+                      .then(async(response)=>{
+                        const results=response.data
+                        console.log(results);
+                        
+                        const res=results.find((result:any)=>result.code===promocode)
+                        console.log(res);
+                        if (res) {
+                          setPromo_discount(res.discount)
+                          setMessage("")
+                        }else{
 
+                        if (promocode ==="") {
+                          setMessage("Enter a code")
+                        } else {
+                          setMessage("This promo code is already used or not available")
+                        }
+                        }
+                      })
+                      .catch((error)=>{
+                        console.log(error);
+                      })
+                    }}
+                  >
+                    Apply
+                  </button>
+                </form>
+              </div>
+              <span className="block text-[var(--neutral-700)]">
+                {promo} % Off Discount
+              </span>
+            </div>
             <div className="bg-white rounded-2xl p-3 mb-6 sm:p-4 lg:p-6 border">
-              <h4 className="mb-0 text-2xl font-semibold">Order Summary</h4>
+              <h4 className="mb-0 text-2xl font-semibold">Order summary</h4>
               <div className="border border-dashed my-8"></div>
               <ul className="gap-4">
                 <li className="flex items-center justify-between flex-wrap">
@@ -769,6 +885,7 @@ alert("sectionfail")  }
                 className={`link inline-flex items-center gap-2 py-3 px-6 rounded-lg  text-white :bg-primary-400 hover:text-white font-medium w-full justify-center ${paymentLaunched? 'bg-neutral-700':"bg-primary"}`}
                       
                 onClick={async () => {
+                  
                   if(addressValidated && credentialConfirmed){
                     const infos = getPaymentDatas()
                     const result = await proceedToPayment()
@@ -781,7 +898,7 @@ alert("sectionfail")  }
                       alert("you must validate your address!")
                     }
                   }
-                  validate()
+                  
                       
                       }} >
                         <span className="inline-block">  {paymentLaunched? "payment on process ... waiting for response": 'launch payment'} </span>

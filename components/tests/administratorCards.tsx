@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState }  from 'react'
 
-interface DropdownButtonProps {
-  label: string;
-  children: React.ReactNode
-}
+interface CardProps {
+    label: string;
+    children: React.ReactNode
+  }
 
-const DropdownButton: React.FC<DropdownButtonProps> = ({ label, children }) => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(true);
+const administratorCards: React.FC<CardProps> = ({ label, children }) => {
+  const [isDropdownOpen, setIsDropdownOpen]=useState(true)
 
   const toggleDropdown = () => {
     setIsDropdownOpen(isDropdownOpen);
   };
-
-  return (
+  
+    return (
     <div className=" w-full items-center justify-center ">
       <div className=" w-full flex items-center justify-center ">
       <button
@@ -20,7 +20,7 @@ const DropdownButton: React.FC<DropdownButtonProps> = ({ label, children }) => {
         onClick={toggleDropdown}
       >
         <span>{label}</span>
-        <i className="las la-car text-xl mx-2"></i>
+        <i className="las la-user text-xl mx-2"></i>
   
 
       </button>
@@ -38,7 +38,7 @@ const DropdownButton: React.FC<DropdownButtonProps> = ({ label, children }) => {
         
       )}
     </div>
-  );
-};
+  )
+}
 
-export default DropdownButton;
+export default administratorCards

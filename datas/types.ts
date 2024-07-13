@@ -18,3 +18,19 @@ export interface Data {
     customer_email: string;
     customer_lang: string;
   };
+
+export interface Promo{
+  code: string;
+  status:string;
+  validity:number;
+  discount:number;
+  startDate:null | Date;
+}
+
+export interface Planl{
+  type:String;
+  title:String;
+  description:[];
+  content:String;
+  amount:number;
+}

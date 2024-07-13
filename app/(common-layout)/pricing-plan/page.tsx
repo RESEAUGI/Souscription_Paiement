@@ -44,17 +44,17 @@ export default function MyPage() {
       <div className="flex flex-wrap justify-center gap-8">
       {myprofiles.map(
         (profile)=>(
-          <div className="m-4 justify-center w-1/4"  key = {profile.id}>
-        <DropDownButton label={profile.url.replaceAll('-', ' ')}  >
-        <div className="p-4 relative">
-          <p className="w-full min-h-[200px] m-4 p-4 bg-primary-light text-xl">
-          {profile.description}
-          </p>
-          <Link href={"/pricing-plan/"+ profile.id } className="rounded-full  m-4 p-4 border-2 border-primary hover:bg-primary hover:text-white"> Explore...                <i className="las la-long-arrow-alt-right text-xl"></i>
-          </Link>
-        </div>
-      </DropDownButton>
+        <div className="m-4 justify-center w-1/4"  key = {profile.id}>
+          <DropDownButton label={profile.url.replaceAll('-', ' ')}  >
+          <div className="p-4 relative">
+            <p className="w-full min-h-[200px] m-4 p-4 bg-primary-light text-xl">
+            {profile.description}
+            </p>
+            <Link href={"/pricing-plan/"+ profile.id } className="rounded-full  m-4 p-4 border-2 border-primary hover:bg-primary hover:text-white"> Explore...                <i className="las la-long-arrow-alt-right text-xl"></i>
+            </Link>
           </div>
+          </DropDownButton>
+        </div>
           
         )
       )  }
