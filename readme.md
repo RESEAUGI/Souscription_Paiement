@@ -74,6 +74,8 @@ Et le corps de la requête doit être au format JSON suivant l'exemple suivant:
 
     "category":"Standard",
 
+    "methodType":"paypal",
+
         "amount":15000,
 
         "duration":3,

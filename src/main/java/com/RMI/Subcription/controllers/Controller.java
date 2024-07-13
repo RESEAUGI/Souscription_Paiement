@@ -10,19 +10,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.RMI.Subcription.models.HistoryModel;
 import com.RMI.Subcription.models.PaymentMethod;
+import com.RMI.Subcription.models.PlanData;
 import com.RMI.Subcription.models.PlanModel;
+import com.RMI.Subcription.models.Promo_code;
 import com.RMI.Subcription.models.SubscriptionsModel;
 import com.RMI.Subcription.models.Supermodel;
 import com.RMI.Subcription.models.UserModel;
+import com.RMI.Subcription.service.HistoryService;
 import com.RMI.Subcription.service.PaymentService;
+import com.RMI.Subcription.service.PlanDataService;
 import com.RMI.Subcription.service.PlanService;
+import com.RMI.Subcription.service.Promo_codeService;
 import com.RMI.Subcription.service.SubscriptionService;
 import com.RMI.Subcription.service.UserService;
 
 import lombok.Getter;
 import lombok.Setter;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,9 +41,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Setter
 @RestController
 @RequestMapping("/")
+@CrossOrigin(origins = "http://localhost:3000")
 public class Controller {
-
+    
     private Map<String,UUID> map = new HashMap<>();
+
+    @Autowired
+    public Promo_codeService promo;
 
     @Autowired
     public PaymentService paymentService;
@@ -50,27 +61,78 @@ public class Controller {
     @Autowired
     public SubscriptionService subscriptionService;
 
-@PostMapping("subscription/create")
-    public Map<String,UUID> createDriver(@RequestBody Supermodel model) {
-        map.clear();    
-        //plan
-        planService.createPlan(model.getCategory(), model.getAmount(), model.getDuration());
+    @Autowired
+    public HistoryService historiesService;
 
-        //mode de paiement
-        paymentService.createPayement(model.getMethodType(),model.getCardNumber(), model.getExpirationDate(), model.getCvc(), model.getProvider(), model.getPhoneNumber(), model.getPaypalEmail(),model.getUserId()); 
-        
-        //Souscription
-        userService.NewDriver(model.getUserId(), planService.returnId(), model.getStartDate(), model.getEndDate(), model.getStatus(), paymentService.returnId());
-        
-        //Historique
-        subscriptionService.createSubscription(model.getUserId(), userService.returnId(),
-        model.getPaymentDate(), planService.returnId(), model.getStatus(),paymentService.returnId());
-        map.put("Saved in database", userService.returnId());
-        return map;
-        
-    }
+    @Autowired
+    public PlanDataService planDataService;
+
     
-    //##############Plans ##########################
+
+    @PostMapping("subscription/create")
+        public Map<String,UUID> createDriver(@RequestBody Supermodel model) {
+            map.clear();
+            // plan
+            planService.createPlan(model.getCategory(), model.getAmount(), model.getDuration());
+
+            // mode de paiement
+            paymentService.createPayement(model.getMethodType(), model.getCardNumber(), model.getExpirationDate(),
+                    model.getCvc(), model.getProvider(), model.getPhoneNumber(), model.getPaypalEmail(), model.getUserId());
+
+            // Souscription
+            userService.NewDriver(model.getUserId(), planService.returnId(), model.getStartDate(), model.getEndDate(),
+                    model.getStatus(), paymentService.returnId());
+
+            // Full history
+            historiesService.setData(model.getUserId(), model.getAmount(), model.getCategory(), model.getEndDate(),
+                    model.getMethodType(), paymentService.returnId(), model.getStatus(), model.getStartDate());
+            historiesService.saveHistory();
+            // Historique
+            subscriptionService.createSubscription(model.getUserId(), userService.returnId(),
+                    model.getPaymentDate(), planService.returnId(), model.getStatus(), paymentService.returnId());
+            map.put("Saved in database", userService.returnId());
+            return map;
+            
+        }
+            
+        @PostMapping("/save_promo")
+        public List<Promo_code> savePromo(@RequestBody List<Promo_code> list) {
+            return promo.savePromocode(list);
+        }
+
+        @GetMapping("/get_promo")
+        public List<Promo_code> getPromo() {
+            return promo.findAll();
+        }
+        
+        @PostMapping("/delete_promo")
+        public String delete(@RequestBody Promo_code entity) {
+            return promo.deletePromo(entity);
+        } 
+        
+        @PostMapping("/save_plan")
+        public String savePlan(@RequestBody PlanData entity) {
+            planDataService.savePlanData(entity);
+            return "Saved successfully";
+        }
+
+        @PostMapping("/delete_plan")
+        public String deletePlan(@RequestBody PlanData entity) {
+            planDataService.deletePlanData(entity);
+            return "Deleted successfully";
+        }
+
+        @GetMapping("/find_plan")
+        public List<PlanData> finDatas() {
+            return planDataService.findAllPlanData();
+        }
+
+        
+        
+        
+        
+        
+            //##############Plans ##########################
         @GetMapping("plans")
         public List <PlanModel> getAllPlans() {
             return planService.getAllPlan();
@@ -139,9 +201,14 @@ public class Controller {
         }
 
     //###############History######################################################
-    @GetMapping("history/")
+    @GetMapping("/history")
     public List<SubscriptionsModel> getSubscriptions() {
         return subscriptionService.getSubscriptions();
+    }
+
+    @GetMapping("/histories")
+    public List<HistoryModel> getHistory() {
+        return historiesService.getHistory(historiesService.returnUserId());
     }
 
     @GetMapping("history/id")
