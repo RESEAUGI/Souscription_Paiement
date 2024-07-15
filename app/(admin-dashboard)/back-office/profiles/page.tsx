@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import SubHeadingBtn from "@/components/SubHeadingBtn";
 import Alert from "@/components/usefull/Alert";
 import { Profile } from "@/datas/types";
-import { Button, Dialog, DialogBody, DialogFooter, DialogHeader } from "@material-tailwind/react";
+import { Button, Card, CardBody, CardFooter, Dialog, DialogBody, DialogFooter, DialogHeader, Input, Typography } from "@material-tailwind/react";
 import axios, { AxiosResponse } from "axios";
 import { useEffect, useState } from "react";
 import "swiper/css";
@@ -16,8 +16,15 @@ import "swiper/css/pagination";
 
 export default function MyPage() {
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const [openModifyForm, setOpenModifyForm] = useState(false);
+  const [openModifyDialog, setOpenModifyDialog] = useState(false);
+  const toogleOpenModifyDialog = () => {setOpenModifyDialog(!openModifyDialog);};
+
+  const [selected, setSelected] = useState(0)
  const router  =  useRouter()
   const handleOpenCreateDialog = () => setOpenCreateDialog(!openCreateDialog);
+  const toogleOpenModifyForm = () => {setOpenModifyForm(!openModifyForm);};
+
   const [myprofiles, setProfiles] = useState<Profile[]>([]);
   
     useEffect(() => {
@@ -40,7 +47,8 @@ export default function MyPage() {
   const [createFormError, setCreateFormError] = useState('');
   const [createFormSuccess, setCreateFormSuccess] = useState('');
 
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState('');  const [statut, setStatut] = useState('');
+
   const [description, setDescription] = useState('');
   const handleCancelCreate = () => {
     setIsCreateModalOpen(false);
@@ -54,23 +62,41 @@ export default function MyPage() {
       handleOpenCreateDialog()
       setIsCreateModalOpen(false);    setDescription(''); setTitle('')
 
-      setCreateFormSuccess('Ressource créée avec succès');
+      setCreateFormSuccess('profile créé avec succès');
     } catch (error) {
       setCreateFormError('Une erreur est survenue lors de la création de la ressource');
     }
   };
 
 
- const handleProfileModify  = (id:number)=>{
+ const submitProfileModify  = async ()=>{
+  try {
+    await axios.post('http://localhost:4000/profile/modify',{url:title, description:description, id:selected});
+    console.log();
+    toogleOpenModifyForm()
+    setIsCreateModalOpen(false);    setDescription(''); setTitle('')
 
-
+    setCreateFormSuccess('profile modifié avec succès');
+  } catch (error) {
+    setCreateFormError('Une erreur est survenue lors de la modification de la ressource');
+  }
  }
  const handleProfileCreate  = ()=>{
 
 
  }
- const handleProfileActive  = (id:number)=>{
+ const handleProfileActive  = async ()=>{
+ try {
+    await axios.post('http://localhost:4000/profile/modify',{statut:statut, id:selected});
+    console.log();
+    toogleOpenModifyForm()
+    setIsCreateModalOpen(false);    setDescription(''); setTitle('')
 
+    setCreateFormSuccess('profile modifié avec succès');
+  } catch (error) {
+    setCreateFormError('Une erreur est survenue lors de la modification de la ressource');
+  }
+ 
 
  }
  const handleProfileDelete  = (id:number)=>{
@@ -117,6 +143,70 @@ setIsCreateModalOpen(true)
             </button>
 
         </div>
+        <Dialog
+        size="xs"
+        open={openModifyForm}
+        handler={toogleOpenModifyForm}
+        className="bg-transparent shadow-none"
+      >
+        <Card className="mx-auto w-full max-w-[24rem]">
+          <CardBody className="flex flex-col gap-4">
+            <Typography variant="h4" color="blue-gray">
+              Modify  profile {/*myprofiles.find( (profile:Profile)=>profile.id === selected)?.id*/}
+            </Typography>
+            <Typography
+              className="mb-3 font-normal"
+              variant="paragraph"
+              color="gray"
+            >
+              Enter the modifications
+            </Typography>
+            <Typography className="-mb-2" variant="h6">
+              the title
+            </Typography>
+            <Input label={''/*myprofiles.find( (profile:Profile)=>profile.id === selected)?.url*/} color="blue" size="lg" />
+            <Typography className="-mb-2" variant="h6">
+              profile description
+            </Typography>
+            <Input label={''/*myprofiles.find( (profile:Profile)=>profile.id === selected)?.description*/} size="lg" />
+            
+          </CardBody>
+          <CardFooter className="pt-0">
+          <Button
+            variant="text"
+            color="red"
+            onClick={toogleOpenModifyForm}
+            className="mr-1"
+          >
+            <span>Cancel</span>
+          </Button>
+            <Button variant="gradient" onClick={toogleOpenModifyDialog} fullWidth>
+              submit
+            </Button>
+            
+          </CardFooter>
+        </Card>
+        <Dialog open={openModifyDialog} size="xs" className="w-[500px]" handler={toogleOpenModifyDialog}>
+        <DialogHeader>Its a simple dialog.</DialogHeader>
+        <DialogBody>
+          Are you sure this is exactly what you want?
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            variant="text"
+            color="red"
+            onClick={toogleOpenModifyDialog}
+            className="mr-1"
+          >
+            <span>Cancel</span>
+          </Button>
+          <Button variant="gradient" color="green" type="submit"  onClick={submitProfileModify} >
+            <span>Confirm </span>
+          </Button>
+         
+        </DialogFooter>
+      </Dialog>
+      </Dialog>
       {/* <button
         className="p-2 bg-primary text-white rounded-lg m-4 w-full"
         onClick={handleOpenPopup}
@@ -141,12 +231,19 @@ setIsCreateModalOpen(true)
           {profile.description}
           </p>
           <span className="flex flex-wrap justify-center gap-4">
-          <button onClick={ ()=>{
+          <Button onClick={ ()=>{
+            setSelected(profile.id)
+            toogleOpenModifyForm()
+} } className="bg-primary hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-4">
+            modify
+            <i className="text-2xl las la-edit text-white mx-3"></i>
+            </Button>
+          {/* <button onClick={ ()=>{
 handleProfileModify(profile.id)
 } } className="bg-primary hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-4">
             modify
             <i className="text-2xl las la-edit text-white mx-3"></i>
-            </button>
+            </button> */}
             <button onClick={ ()=>{
 handleProfileDelete(profile.id)
 } } className="bg-red-800 hover:bg-red-600 text-white font-bold py-2 px-4 rounded mb-4">
@@ -154,7 +251,7 @@ handleProfileDelete(profile.id)
             <i className="text-2xl las la-trash-alt text-white mx-3"></i>
             </button>
             <button onClick={ ()=>{
-handleProfileActive(profile.id)
+setSelected(profile.id)
 } } className={ "" + profile.statut=='inactive'? "text-white font-bold py-2 px-4 rounded mb-4 bg-green-800 hover:bg-green-600":"text-white font-bold py-2 px-4 rounded mb-4 bg-yellow-500 hover:bg-yellow-300"}>
             {profile.statut=='active'? 'disable': 'enable'}
             {profile.statut=='inactive'&&(<i className="text-2xl las la-check-circle text-white mx-3"></i>)}
@@ -203,6 +300,7 @@ setIsCreateModalOpen(true)
         ({isCreateModalOpen&&(
 //           <PopUpPay open={true} onClose={function (): void {
 // setIsCreateModalOpen(false)        } } width={"400"} height={"200"} position={"top-center"}>
+<div>
   <div className="relative inset-0 z-50 overflow-y-auto flex items-center justify-center"><form onSubmit={handleCreateConfirm}>
   
   <div className="mb-4">
@@ -276,8 +374,12 @@ setIsCreateModalOpen(true)
           
 
           </div>
+          
+          </div>
 // </PopUpPay>
         )})
+        {/* dialogs */}
+       
     </div>
   );
 }

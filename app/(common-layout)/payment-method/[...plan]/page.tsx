@@ -229,45 +229,48 @@ console.log('formData : '+JSON.stringify(formData));
   }
 
   async function  proceedToPayment() : Promise<Boolean> {
-     const res = await paymentAPI.post<any, AxiosResponse<any>>('/paylink', paymentAPIdata)
-     // Ouvrir une nouvelle fenêtre
+    const res = await paymentAPI.post<any, AxiosResponse<any>>('/paylink', paymentAPIdata)
+    // Ouvrir une nouvelle fenêtre
 const newWindow = window.open(res.data.payment_url, '_blank', 'width=800,height=600');
 // Écouter l'événement "loadstart" pour détecter le début du chargement de la nouvelle URL
-newWindow?.addEventListener('loadstart', () => {
-  console.log('La nouvelle fenêtre a commencé à charger une nouvelle URL.');
+// newWindow?.addEventListener('loadstart', () => {
+//  console.log('La nouvelle fenêtre a commencé à charger une nouvelle URL.');
 
-  // Fermer la nouvelle fenêtre
-  newWindow?.close();
-});
+//  // Fermer la nouvelle fenêtre
+//  newWindow?.close();
+// });
 console.log('https://my-coolpay.com/api/118a4852-7df8-46d9-834b-23b4ef25aaab/checkStatus/'+res.data.transaction_ref);
 
-  const result = await fetch('https://my-coolpay.com/api/118a4852-7df8-46d9-834b-23b4ef25aaab/checkStatus/'+res.data.transaction_ref)
-  ;let resutat = await result.json()
-  console.log(resutat);
-  const startTime = Date.now();
+ const result = await fetch('https://my-coolpay.com/api/118a4852-7df8-46d9-834b-23b4ef25aaab/checkStatus/'+res.data.transaction_ref)
+ ;let resutat = await result.json()
+ console.log(resutat);
+ const startTime = Date.now();
 
-  //Écouter l'événement "load" pour détecter la fin du chargement de la nouvelle URL
-  while (!(resutat.transaction_status=== 'SUCCESS')||!(resutat.transaction_status=== 'FAILED')) {
-    if(Date.now() - startTime > 120000) break
-    // Effectuer des actions dans la boucle
-    console.log('waiting 3s');
-    console.log(resutat.transaction_status);
-    
-    setTimeout(() => {
-      console.log('nouvelle tentative...'+(Date.now() - startTime )/1000);
-    }, 3000);
-    const result = await fetch('https://my-coolpay.com/api/118a4852-7df8-46d9-834b-23b4ef25aaab/checkStatus/'+res.data.transaction_ref)
-  ; resutat = await result.json()
-  console.log(resutat);
-  
-  }
-  if (resutat.transaction_message === 'Votre transaction a été effectuée avec succès !'|| resutat.transaction_status=== 'SUCCESS') {
+ //Écouter l'événement "load" pour détecter la fin du chargement de la nouvelle URL
+ while (!(resutat.transaction_status=== 'SUCCESS')||!(resutat.transaction_status=== 'FAILED')) {
+   if(Date.now() - startTime > 120000) break
+   // Effectuer des actions dans la boucle
+   console.log('waiting 3s');
+   console.log(resutat.transaction_status);
+   
+   setTimeout(() => {
+     console.log('nouvelle tentative...'+(Date.now() - startTime )/1000);
+   }, 3000);
+   const result = await fetch('https://my-coolpay.com/api/118a4852-7df8-46d9-834b-23b4ef25aaab/checkStatus/'+res.data.transaction_ref)
+ ; resutat = await result.json()
+ console.log(resutat);
+ 
+ }
+ if (resutat.transaction_message === 'Votre transaction a été effectuée avec succès !'|| resutat.transaction_status=== 'SUCCESS') {
 setPaid(true)  }
 
 console.log(paid);
+if (newWindow) {
+    newWindow.close();
 
-   
-    return paid;
+  }
+  
+   return paid;
 }
 
 async function  subscribeThen() : Promise<Boolean> {

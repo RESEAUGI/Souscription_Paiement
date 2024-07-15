@@ -17,7 +17,7 @@ const Page = ({params}: {params : {profile: number} }) => {
 
   const [config, setConfig] = useState<Config>( {
     tax: 0.2,
-    promocodes: ['PROMO10', 'SUMMER50'],
+    promocodes: [{'PROMO10':0.1}, {'SUMMER50':0.2}],
     frequencies: [
       { f: 'quaterly', value: 0.05, id:3 },
       { f: 'monthly', value: 0.1, id:1 },
